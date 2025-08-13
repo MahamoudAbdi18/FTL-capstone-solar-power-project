@@ -3,6 +3,18 @@ import joblib
 import pandas as pd
 import numpy as np
 
+# --- Add this block near the top of streamlit_app.py ---
+import sys, types
+# Import the class definition from your training file
+from train_pipeline import TimeFeatures  # this file is in your repo
+
+# Create a fake __main__ module and attach TimeFeatures to it,
+# so unpickling can resolve __main__.TimeFeatures
+if "__main__" not in sys.modules:
+    sys.modules["__main__"] = types.ModuleType("__main__")
+setattr(sys.modules["__main__"], "TimeFeatures", TimeFeatures)
+# --- end patch ---
+
 # Load model
 @st.cache_resource
 def load_model():
