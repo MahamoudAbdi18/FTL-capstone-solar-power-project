@@ -1,11 +1,11 @@
 streamlit
 fastapi
 uvicorn
-sklearn== 1.2.2
-numpy==1.26.4
-pandas== 2.1.4
+sklearn
+numpy
+pandas
 
-joblib== 1.5.1
+joblib
 joblib
 pydantic>=2.0.0
 
