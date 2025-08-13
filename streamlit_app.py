@@ -3,10 +3,29 @@ import joblib
 import pandas as pd
 import numpy as np
 
-# --- Add this block near the top of streamlit_app.py ---
-import sys, types
-# Import the class definition from your training file
-from train_pipeline import TimeFeatures  # this file is in your repo
+# time_features.py
+import pandas as pd
+
+RAW_TIME = 'time'
+TIME_FEATURES = ['Hour', 'Day', 'Month']
+
+class TimeFeatures:
+    def fit(self, X, y=None): return self
+    def transform(self, X):
+        X = X.copy()
+        if RAW_TIME in X.columns:
+            X[RAW_TIME] = pd.to_datetime(X[RAW_TIME])
+            X['Hour'] = X[RAW_TIME].dt.hour
+            X['Day']  = X[RAW_TIME].dt.day
+            X['Month']= X[RAW_TIME].dt.month
+            X = X.drop(columns=[RAW_TIME])
+        for c in TIME_FEATURES:
+            if c not in X.columns:
+                X[c] = 0
+        return X
+    def get_params(self, deep=True): return {}
+    def set_params(self, **params): return self
+
 
 # Create a fake __main__ module and attach TimeFeatures to it,
 # so unpickling can resolve __main__.TimeFeatures
