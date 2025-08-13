@@ -2,39 +2,44 @@ import streamlit as st
 import joblib
 import pandas as pd
 import numpy as np
+import sys, types
 
-# time_features.py
-import pandas as pd
-
+# ---------------- TimeFeatures transformer ----------------
 RAW_TIME = 'time'
 TIME_FEATURES = ['Hour', 'Day', 'Month']
 
 class TimeFeatures:
-    def fit(self, X, y=None): return self
+    """Transformer that extracts Hour/Day/Month from a 'time' column."""
+    def fit(self, X, y=None):
+        return self
+
     def transform(self, X):
         X = X.copy()
         if RAW_TIME in X.columns:
             X[RAW_TIME] = pd.to_datetime(X[RAW_TIME])
-            X['Hour'] = X[RAW_TIME].dt.hour
-            X['Day']  = X[RAW_TIME].dt.day
-            X['Month']= X[RAW_TIME].dt.month
+            X['Hour']  = X[RAW_TIME].dt.hour
+            X['Day']   = X[RAW_TIME].dt.day
+            X['Month'] = X[RAW_TIME].dt.month
             X = X.drop(columns=[RAW_TIME])
+        # ensure expected columns
         for c in TIME_FEATURES:
             if c not in X.columns:
                 X[c] = 0
         return X
-    def get_params(self, deep=True): return {}
-    def set_params(self, **params): return self
 
+    def get_params(self, deep=True):
+        return {}
 
-# Create a fake __main__ module and attach TimeFeatures to it,
-# so unpickling can resolve __main__.TimeFeatures
+    def set_params(self, **params):
+        return self
+
+# Make TimeFeatures available under __main__ for joblib unpickling
 if "__main__" not in sys.modules:
     sys.modules["__main__"] = types.ModuleType("__main__")
 setattr(sys.modules["__main__"], "TimeFeatures", TimeFeatures)
-# --- end patch ---
+# ------------------------------------------------------------
 
-# Load model
+# Load model with caching
 @st.cache_resource
 def load_model():
     return joblib.load("model_stacking_pipeline.pkl")
