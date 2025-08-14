@@ -963,11 +963,32 @@ with tab3:
 
 # ---------------- TAB 4 : Équipe ----------------
 # ---------------- TAB 4 : Équipe ----------------
+import os, base64, mimetypes
+
 with tab4:
     st.subheader("👥 Équipe du projet")
     st.caption("Cliquez pour ouvrir les profils LinkedIn.")
 
-    # ✅ Renseigne aussi 'avatar' (chemin relatif dans le repo ou URL publique)
+    # Helper: local file -> data: URI (so <img src="..."> works in st.markdown)
+    def _as_data_uri(path: str) -> str | None:
+        path = (path or "").strip()
+        if not path or not os.path.exists(path):
+            return None
+        mime = mimetypes.guess_type(path)[0] or "image/jpeg"
+        with open(path, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode("ascii")
+        return f"data:{mime};base64,{b64}"
+
+    def _resolve_avatar(src: str | None) -> str | None:
+        """Accepts data: URIs, http(s) URLs, or local repo paths."""
+        if not src:
+            return None
+        s = src.strip()
+        if s.startswith(("data:image/", "http://", "https://")):
+            return s
+        return _as_data_uri(s)
+
+    # ✅ Use repo-relative paths (works now via data URIs)
     TEAM = [
         {
             "name": "Mahmoud Abdi",
@@ -982,18 +1003,23 @@ with tab4:
         {
             "name": "Aboubaker Mohamed",
             "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273/",
-            "avatar": "photo/aboubaker.jpg",
+            # ⚠️ change to a real file if you add it; e.g. "photo/aboubaker.jpg"
+            "avatar": "photo/j.jpg",
         },
     ]
 
-    def linkedin_button(name: str, url: str, avatar: str):
-        # Bouton custom avec image ronde + libellé
+    def linkedin_button(name: str, url: str, avatar: str | None):
+        img_src = _resolve_avatar(avatar)
+        if not img_src:
+            # graceful fallback
+            img_src = "https://static.streamlit.io/examples/dice.jpg"
+
         html = f"""
         <a href="{url}" target="_blank" style="text-decoration:none;">
           <div style="
             display:inline-flex; align-items:center; gap:10px;
             padding:8px 12px; border:1px solid #ddd; border-radius:10px;">
-            <img src="{avatar}" alt="{name}" 
+            <img src="{img_src}" alt="{name}" 
                  style="width:26px;height:26px;border-radius:50%;object-fit:cover;">
             <span style="font-weight:600;">LinkedIn</span>
           </div>
@@ -1014,7 +1040,6 @@ with tab4:
                     url = (m.get("linkedin") or "").strip()
                     avatar = (m.get("avatar") or "").strip()
                     if url:
-                        # Si l'image n'existe pas ou est vide, le bouton marchera quand même sans l'aperçu
-                        linkedin_button(m.get("name",""), url, avatar or "https://static.streamlit.io/examples/dice.jpg")
+                        linkedin_button(m.get("name",""), url, avatar)
                     else:
                         st.caption("Lien LinkedIn non fourni")
