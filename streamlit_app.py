@@ -549,8 +549,9 @@ def load_model():
 model = load_model()
 
 # ======================= Onglets =======================
-st.title("☀️ Solar Power Suite")
-tab1, tab2, tab3 = st.tabs(["🖊️ Saisie manuelle", "📂 Batch CSV", "🔆 Évaluation panneaux"])
+st.title("☀️ Solar Power Dashboard ")
+tab1, tab2, tab3, tab4 = st.tabs(["🖊️ Saisie manuelle", "📂 Batch CSV", "🔆 Évaluation panneaux", "👥 Équipe"])
+
 
 # ---------------- TAB 1 : Saisie manuelle ----------------
 with tab1:
@@ -960,5 +961,39 @@ with st.expander("⚙️ Panneaux à comparer (nom, Pmax, dimensions)"):
         }),
         use_container_width=True
     )
+# ---------------- TAB 4 : Équipe ----------------
+with tab4:
+    st.subheader("👥 Équipe du projet")
+    st.caption("Cliquez pour ouvrir les profils LinkedIn.")
+
+    # 👉 RENSEIGNE ICI les membres (nom + lien LinkedIn)
+    TEAM = [
+        {"name": "Mahamoud Abdi", "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/"},
+        {"name": "Moustapha Ali", "linkedin": "https://www.linkedin.com/in/moustaphalifarah/"},
+        {"name": "Aboubaker Mohamed", "linkedin": "https://www.linkedin.com/in/https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app/"},
+        # … ajoute autant de membres que nécessaire
+    ]
+
+    if not TEAM:
+        st.info("Aucun membre défini. Renseigne la liste TEAM ci-dessus.")
+    else:
+        # Affichage en grille (3 colonnes par rangée)
+        per_row = 3
+        for i in range(0, len(TEAM), per_row):
+            row = TEAM[i:i+per_row]
+            cols = st.columns(len(row))
+            for col, member in zip(cols, row):
+                with col:
+                    st.markdown(f"**{member.get('name','(Sans nom)')}**")
+                    url = member.get("linkedin", "").strip()
+                    if url:
+                        # Si st.link_button est dispo (Streamlit récent), on l'utilise
+                        try:
+                            st.link_button("LinkedIn", url)
+                        except Exception:
+                            # Fallback universel : lien Markdown
+                            st.markdown(f"[LinkedIn]({url})")
+                    else:
+                        st.caption("Lien LinkedIn non fourni")
 
 
