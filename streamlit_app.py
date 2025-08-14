@@ -962,16 +962,97 @@ with tab3:
 #                         st.caption("Lien LinkedIn non fourni")
 
 # ---------------- TAB 4 : Équipe ----------------
-# ---------------- TAB 4 : Équipe ----------------
+# # ---------------- TAB 4 : Équipe ----------------
+# import os, base64, mimetypes
+
+# with tab4:
+#     st.subheader("👥 Équipe du projet")
+#     st.caption("Cliquez pour ouvrir les profils LinkedIn.")
+
+#     # Helper: local file -> data: URI (so <img src="..."> works in st.markdown)
+#     def _as_data_uri(path: str) -> str | None:
+#         path = (path or "").strip()
+#         if not path or not os.path.exists(path):
+#             return None
+#         mime = mimetypes.guess_type(path)[0] or "image/jpeg"
+#         with open(path, "rb") as f:
+#             b64 = base64.b64encode(f.read()).decode("ascii")
+#         return f"data:{mime};base64,{b64}"
+
+#     def _resolve_avatar(src: str | None) -> str | None:
+#         """Accepts data: URIs, http(s) URLs, or local repo paths."""
+#         if not src:
+#             return None
+#         s = src.strip()
+#         if s.startswith(("data:image/", "http://", "https://")):
+#             return s
+#         return _as_data_uri(s)
+
+#     # ✅ Use repo-relative paths (works now via data URIs)
+#     TEAM = [
+#         {
+#             "name": "Mahmoud Abdi",
+#             "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/",
+#             "avatar": "photo/moud.jpg",
+#         },
+#         {
+#             "name": "Moustapha Ali",
+#             "linkedin": "https://www.linkedin.com/in/moustaphalifarah/",
+#             "avatar": "photo/mous.jpg",
+#         },
+#         {
+#             "name": "Aboubaker Mohamed",
+#             "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273/",
+#             # ⚠️ change to a real file if you add it; e.g. "photo/aboubaker.jpg"
+#             "avatar": "photo/j.jpg",
+#         },
+#     ]
+
+#     def linkedin_button(name: str, url: str, avatar: str | None):
+#         img_src = _resolve_avatar(avatar)
+#         if not img_src:
+#             # graceful fallback
+#             img_src = "https://static.streamlit.io/examples/dice.jpg"
+
+#         html = f"""
+#         <a href="{url}" target="_blank" style="text-decoration:none;">
+#           <div style="
+#             display:inline-flex; align-items:center; gap:10px;
+#             padding:8px 12px; border:1px solid #ddd; border-radius:10px;">
+#             <img src="{img_src}" alt="{name}" 
+#                  style="width:26px;height:26px;border-radius:50%;object-fit:cover;">
+#             <span style="font-weight:600;">LinkedIn</span>
+#           </div>
+#         </a>
+#         """
+#         st.markdown(html, unsafe_allow_html=True)
+
+#     if not TEAM:
+#         st.info("Aucun membre défini. Renseigne la liste TEAM ci-dessus.")
+#     else:
+#         per_row = 3
+#         for i in range(0, len(TEAM), per_row):
+#             row = TEAM[i:i+per_row]
+#             cols = st.columns(len(row))
+#             for col, m in zip(cols, row):
+#                 with col:
+#                     st.markdown(f"**{m.get('name','(Sans nom)')}**")
+#                     url = (m.get("linkedin") or "").strip()
+#                     avatar = (m.get("avatar") or "").strip()
+#                     if url:
+#                         linkedin_button(m.get("name",""), url, avatar)
+#                     else:
+#                         st.caption("Lien LinkedIn non fourni")
+
+# ---------------- TAB 4 : Équipe (style cartes) ----------------
 import os, base64, mimetypes
 
 with tab4:
-    st.subheader("👥 Équipe du projet")
-    st.caption("Cliquez pour ouvrir les profils LinkedIn.")
+    st.subheader("👨‍💼💡 Meet the Team")
 
-    # Helper: local file -> data: URI (so <img src="..."> works in st.markdown)
+    # ---------- helpers ----------
     def _as_data_uri(path: str) -> str | None:
-        path = (path or "").strip()
+        """Fichier local -> data:URI (pour <img src="..."> dans st.markdown)."""
         if not path or not os.path.exists(path):
             return None
         mime = mimetypes.guess_type(path)[0] or "image/jpeg"
@@ -979,16 +1060,25 @@ with tab4:
             b64 = base64.b64encode(f.read()).decode("ascii")
         return f"data:{mime};base64,{b64}"
 
-    def _resolve_avatar(src: str | None) -> str | None:
-        """Accepts data: URIs, http(s) URLs, or local repo paths."""
+    def _resolve_img(src: str | None) -> str:
+        """Accepte data:, http(s) ou chemin local. Fallback propre."""
         if not src:
-            return None
+            return "https://static.streamlit.io/examples/dice.jpg"
         s = src.strip()
         if s.startswith(("data:image/", "http://", "https://")):
             return s
-        return _as_data_uri(s)
+        return _as_data_uri(s) or "https://static.streamlit.io/examples/dice.jpg"
 
-    # ✅ Use repo-relative paths (works now via data URIs)
+    # petit logo LinkedIn en SVG encodé (pas d'appel externe)
+    _linkedin_svg = """
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+    <rect width="448" height="448" rx="48" ry="48" fill="#0A66C2"/>
+    <path fill="#fff" d="M100.3 448H7V148.9h93.3V448zM53.7 108.1C24 108.1 0 84 0 54.3S24 0.6 53.7 0.6s53.7 24.1 53.7 53.7-24.1 53.8-53.7 53.8zM447.9 448h-93.1V302.4c0-34.7-0.7-79.3-48.3-79.3-48.3 0-55.7 37.7-55.7 76.6V448h-93.1V148.9H248v40.8h1.3c13.9-26.4 47.9-54.3 98.6-54.3 105.4 0 124.9 69.4 124.9 159.6V448z"/>
+    </svg>
+    """.strip()
+    _linkedin_data_uri = "data:image/svg+xml;base64," + base64.b64encode(_linkedin_svg.encode("utf-8")).decode("ascii")
+
+    # ---------- données équipe ----------
     TEAM = [
         {
             "name": "Mahmoud Abdi",
@@ -1003,43 +1093,41 @@ with tab4:
         {
             "name": "Aboubaker Mohamed",
             "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273/",
-            # ⚠️ change to a real file if you add it; e.g. "photo/aboubaker.jpg"
-            "avatar": "photo/j.jpg",
+            "avatar": "photo/j.jpg",  # ⬅️ mets le vrai fichier si différent
         },
+        # Exemple d’un 4e membre pour avoir une ligne complète :
+        # {"name": "Muktar Abdinasir", "linkedin": "https://...", "avatar": "photo/muktar.jpg"},
     ]
 
-    def linkedin_button(name: str, url: str, avatar: str | None):
-        img_src = _resolve_avatar(avatar)
-        if not img_src:
-            # graceful fallback
-            img_src = "https://static.streamlit.io/examples/dice.jpg"
+    def member_card(name: str, avatar: str | None, linkedin: str | None):
+        img = _resolve_img(avatar)
+        ln = (linkedin or "").strip()
 
         html = f"""
-        <a href="{url}" target="_blank" style="text-decoration:none;">
-          <div style="
-            display:inline-flex; align-items:center; gap:10px;
-            padding:8px 12px; border:1px solid #ddd; border-radius:10px;">
-            <img src="{img_src}" alt="{name}" 
-                 style="width:26px;height:26px;border-radius:50%;object-fit:cover;">
-            <span style="font-weight:600;">LinkedIn</span>
-          </div>
-        </a>
+        <div style="text-align:center;margin-bottom:28px;">
+          <img src="{img}" alt="{name}" 
+               style="width:100%;max-width:260px;aspect-ratio:1/1;
+                      object-fit:cover;border-radius:16px;
+                      box-shadow:0 4px 16px rgba(0,0,0,.08);" />
+          <div style="margin-top:10px;font-weight:600;color:#333;">{name}</div>
+          {f'<a href="{ln}" target="_blank" aria-label="LinkedIn">'
+             f'<img src="{_linkedin_data_uri}" style="width:34px;height:34px;margin-top:10px;"/></a>'
+            if ln else '<div style="height:34px;margin-top:10px;opacity:.5;">(LinkedIn non fourni)</div>'}
+        </div>
         """
         st.markdown(html, unsafe_allow_html=True)
 
+    # ---------- rendu en grille ----------
     if not TEAM:
         st.info("Aucun membre défini. Renseigne la liste TEAM ci-dessus.")
     else:
-        per_row = 3
+        per_row = 4  # comme ta capture
         for i in range(0, len(TEAM), per_row):
             row = TEAM[i:i+per_row]
-            cols = st.columns(len(row))
+            cols = st.columns(len(row), gap="large")
             for col, m in zip(cols, row):
                 with col:
-                    st.markdown(f"**{m.get('name','(Sans nom)')}**")
-                    url = (m.get("linkedin") or "").strip()
-                    avatar = (m.get("avatar") or "").strip()
-                    if url:
-                        linkedin_button(m.get("name",""), url, avatar)
-                    else:
-                        st.caption("Lien LinkedIn non fourni")
+                    member_card(m.get("name","(Sans nom)"),
+                                m.get("avatar"),
+                                m.get("linkedin"))
+
