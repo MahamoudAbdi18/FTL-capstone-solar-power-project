@@ -698,7 +698,8 @@ with tab3:
             st.error(f"La colonne `time` est manquante dans la source irradiance ({src}).")
             st.stop()
         df["time"] = pd.to_datetime(df["time"], errors="coerce")
-        df = df.dropna(subset=["time"]).set_index("time").sortindex()
+        df = df.dropna(subset=["time"]).set_index("time").sort_index()
+
         return df
 
     irr = load_internal_irradiance()
