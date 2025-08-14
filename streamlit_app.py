@@ -1050,7 +1050,7 @@ with tab3:
 import os, base64, mimetypes
 
 with tab4:
-    st.subheader("👨‍💼💡 Meet the Team")
+    st.subheader("👨‍💼 Meet the Team")
 
     # ---------- helpers ----------
     def _as_data_uri(path: str) -> str | None:
