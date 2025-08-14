@@ -114,14 +114,14 @@
 #         out = df.copy()
 #         out["prediction_W_m2"] = preds
 
-        st.success(f"Predicted {len(out)} rows.")
-        st.dataframe(out.head(100), use_container_width=True)
-        st.download_button("⬇️ Download predictions.csv",
+#        st.success(f"Predicted {len(out)} rows.")
+#        st.dataframe(out.head(100), use_container_width=True)
+#        st.download_button("⬇️ Download predictions.csv",
 #                            out.to_csv(index=False).encode("utf-8"),
-                           "predictions.csv",
-                           "text/csv")
-    except Exception as e:
-         st.error(f"Batch prediction error: {e}")
+#                           "predictions.csv",
+#                           "text/csv")
+#    except Exception as e:
+#         st.error(f"Batch prediction error: {e}")
 
 import streamlit as st
 import os, sys, types
