@@ -1,13 +1,28 @@
 # Python 3.11 + scikit-learn 1.2.2 (to load your existing pickle safely)
 
+#streamlit==1.48.1
+#pydantic>=2.0.0
+
+# Numeric stack versions that have wheels for Python 3.11 and work with sklearn 1.2.x
+#numpy==1.24.4
+#scipy==1.10.1
+#pandas==1.5.3
+
+# ML stack pinned to the training version
+#scikit-learn==1.2.2
+#joblib==1.2.0
+
+# --- Core app ---
 streamlit==1.48.1
 pydantic>=2.0.0
 
-# Numeric stack versions that have wheels for Python 3.11 and work with sklearn 1.2.x
+# --- Numeric stack compatible with scikit-learn 1.2.2 on Python 3.11 ---
 numpy==1.24.4
 scipy==1.10.1
 pandas==1.5.3
+python-dateutil==2.8.2
 
-# ML stack pinned to the training version
+# --- ML stack: must match the version used to train the pickle ---
 scikit-learn==1.2.2
 joblib==1.2.0
+
