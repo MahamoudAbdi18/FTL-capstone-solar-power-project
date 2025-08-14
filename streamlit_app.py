@@ -934,16 +934,71 @@ with tab3:
         use_container_width=True
     )
 
+# # ---------------- TAB 4 : Équipe ----------------
+# with tab4:
+#     st.subheader("👥 Équipe du projet")
+#     st.caption("Cliquez pour ouvrir les profils LinkedIn.")
+
+#     TEAM = [
+#         {"name": "Mahmoud Abdi",      "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/"},
+#         {"name": "Moustapha Ali",     "linkedin": "https://www.linkedin.com/in/moustaphalifarah/"},
+#         {"name": "Aboubaker Mohamed", "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273/"},
+#     ]
+
+#     if not TEAM:
+#         st.info("Aucun membre défini. Renseigne la liste TEAM ci-dessus.")
+#     else:
+#         per_row = 3
+#         for i in range(0, len(TEAM), per_row):
+#             row = TEAM[i:i+per_row]
+#             cols = st.columns(len(row))
+#             for col, member in zip(cols, row):
+#                 with col:
+#                     st.markdown(f"**{member.get('name','(Sans nom)')}**")
+#                     url = (member.get("linkedin") or "").strip()
+#                     if url:
+#                         st.link_button("LinkedIn", url)
+#                     else:
+#                         st.caption("Lien LinkedIn non fourni")
+
 # ---------------- TAB 4 : Équipe ----------------
 with tab4:
     st.subheader("👥 Équipe du projet")
     st.caption("Cliquez pour ouvrir les profils LinkedIn.")
 
+    # ✅ Renseigne aussi 'avatar' (chemin relatif dans le repo ou URL publique)
     TEAM = [
-        {"name": "Mahmoud Abdi",      "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/"},
-        {"name": "Moustapha Ali",     "linkedin": "https://www.linkedin.com/in/moustaphalifarah/"},
-        {"name": "Aboubaker Mohamed", "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273/"},
+        {
+            "name": "Mahmoud Abdi",
+            "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/",
+            "avatar": "assets/mahmoud.jpg",
+        },
+        {
+            "name": "Moustapha Ali",
+            "linkedin": "https://www.linkedin.com/in/moustaphalifarah/",
+            "avatar": "assets/moustapha.jpg",
+        },
+        {
+            "name": "Aboubaker Mohamed",
+            "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273/",
+            "avatar": "assets/aboubaker.jpg",
+        },
     ]
+
+    def linkedin_button(name: str, url: str, avatar: str):
+        # Bouton custom avec image ronde + libellé
+        html = f"""
+        <a href="{url}" target="_blank" style="text-decoration:none;">
+          <div style="
+            display:inline-flex; align-items:center; gap:10px;
+            padding:8px 12px; border:1px solid #ddd; border-radius:10px;">
+            <img src="{avatar}" alt="{name}" 
+                 style="width:26px;height:26px;border-radius:50%;object-fit:cover;">
+            <span style="font-weight:600;">LinkedIn</span>
+          </div>
+        </a>
+        """
+        st.markdown(html, unsafe_allow_html=True)
 
     if not TEAM:
         st.info("Aucun membre défini. Renseigne la liste TEAM ci-dessus.")
@@ -952,11 +1007,14 @@ with tab4:
         for i in range(0, len(TEAM), per_row):
             row = TEAM[i:i+per_row]
             cols = st.columns(len(row))
-            for col, member in zip(cols, row):
+            for col, m in zip(cols, row):
                 with col:
-                    st.markdown(f"**{member.get('name','(Sans nom)')}**")
-                    url = (member.get("linkedin") or "").strip()
+                    st.markdown(f"**{m.get('name','(Sans nom)')}**")
+                    url = (m.get("linkedin") or "").strip()
+                    avatar = (m.get("avatar") or "").strip()
                     if url:
-                        st.link_button("LinkedIn", url)
+                        # Si l'image n'existe pas ou est vide, le bouton marchera quand même sans l'aperçu
+                        linkedin_button(m.get("name",""), url, avatar or "https://static.streamlit.io/examples/dice.jpg")
                     else:
                         st.caption("Lien LinkedIn non fourni")
+
