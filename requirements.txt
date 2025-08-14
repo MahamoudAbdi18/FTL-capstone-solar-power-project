@@ -1,13 +1,13 @@
-# versions compatibles Python 3.11 et stables pour le déploiement
+# Python 3.11 + scikit-learn 1.2.2 (to load your existing pickle safely)
 
-
-scikit-learn==1.7.1
-
-
-streamlit
+streamlit==1.48.1
 pydantic>=2.0.0
-scipy
 
-numpy==2.3.2
-pandas==2.3.1
-joblib==1.5.1
+# Numeric stack versions that have wheels for Python 3.11 and work with sklearn 1.2.x
+numpy==1.24.4
+scipy==1.10.1
+pandas==1.5.3
+
+# ML stack pinned to the training version
+scikit-learn==1.2.2
+joblib==1.2.0
