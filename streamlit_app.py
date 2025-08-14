@@ -88,7 +88,7 @@ def load_model():
 
 model = load_model()
 
-st.title("☀️ Solar Power Prediction — Batch CSV")
+st.title("☀️ Solar Power Prediction ")
 
 st.write("Upload a CSV that contains either a `time` column **or** the three columns "
          "`Hour`, `Day`, `Month`, plus these weather columns:")
