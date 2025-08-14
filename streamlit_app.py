@@ -966,34 +966,27 @@ with tab4:
     st.subheader("👥 Équipe du projet")
     st.caption("Cliquez pour ouvrir les profils LinkedIn.")
 
-    # 👉 RENSEIGNE ICI les membres (nom + lien LinkedIn)
+    # 👉 RENSEIGNE ICI les noms + liens LinkedIn
     TEAM = [
-        {"name": "Mahamoud Abdi", "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/"},
-        {"name": "Moustapha Ali", "linkedin": "https://www.linkedin.com/in/moustaphalifarah/"},
-        {"name": "Aboubaker Mohamed", "linkedin": "https://www.linkedin.com/in/https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app/"},
-        # … ajoute autant de membres que nécessaire
+        {"name": "Mahmoud Abdi",        "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/"},
+        {"name": "Moustapha Ali",       "linkedin": "https://www.linkedin.com/in/moustaphalifarah/"},
+        {"name": "Aboubaker Mohamed",   "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app/"},
+        # {"name": "Autre membre", "linkedin": "https://..."}  # ajoute si besoin
     ]
 
     if not TEAM:
         st.info("Aucun membre défini. Renseigne la liste TEAM ci-dessus.")
     else:
-        # Affichage en grille (3 colonnes par rangée)
-        per_row = 3
+        per_row = 3  # 3 colonnes par rangée (adapte si besoin)
         for i in range(0, len(TEAM), per_row):
             row = TEAM[i:i+per_row]
             cols = st.columns(len(row))
             for col, member in zip(cols, row):
                 with col:
                     st.markdown(f"**{member.get('name','(Sans nom)')}**")
-                    url = member.get("linkedin", "").strip()
+                    url = (member.get("linkedin") or "").strip()
                     if url:
-                        # Si st.link_button est dispo (Streamlit récent), on l'utilise
-                        try:
-                            st.link_button("LinkedIn", url)
-                        except Exception:
-                            # Fallback universel : lien Markdown
-                            st.markdown(f"[LinkedIn]({url})")
+                        # Streamlit 1.48.1 : link_button est OK
+                        st.link_button("LinkedIn", url)
                     else:
                         st.caption("Lien LinkedIn non fourni")
-
-
