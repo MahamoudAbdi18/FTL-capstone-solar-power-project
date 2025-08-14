@@ -88,107 +88,8 @@ def load_model():
 
 model = load_model()
 
-st.title("☀️ Solar Power Prediction ")
 
 
-# st.title("☀️ Solar Power Prediction — Saisie manuelle")
-
-# st.write("Renseignez soit un **horaire** (champ unique), soit **Heure/Jour/Mois**, "
-#          "puis les variables météo suivantes :")
-# st.code(", ".join(BASE_COLS), language="text")
-
-# # --- Choix de la méthode de temps ---
-# time_mode = st.radio(
-#     "Comment fournir le temps ?",
-#     options=["Colonne 'time' (unique)", "Heure / Jour / Mois"],
-#     horizontal=True,
-# )
-
-# with st.form("manual_input_form"):
-#     st.subheader("Temps")
-#     if time_mode == "Colonne 'time' (unique)":
-#         # Utilise un datetime; si tu veux seulement date+heure locale, garde ce widget
-#         dt = st.datetime_input("time", help="Date et heure")
-#         # On construira 'Hour/Day/Month' à partir de ceci
-#         hour = day = month = None
-#     else:
-#         col_h, col_d, col_m = st.columns(3)
-#         with col_h:
-#             hour = st.number_input("Hour", min_value=0, max_value=23, value=12, step=1)
-#         with col_d:
-#             day = st.number_input("Day", min_value=1, max_value=31, value=15, step=1)
-#         with col_m:
-#             month = st.number_input("Month", min_value=1, max_value=12, value=6, step=1)
-#         dt = None  # pas utilisé dans ce mode
-
-#     st.subheader("Variables météo")
-#     c1, c2 = st.columns(2)
-#     with c1:
-#         temperature_2m = st.number_input("temperature_2m (°C)", value=25.0)
-#         relative_humidity_2m = st.number_input("relative_humidity_2m (%)", min_value=0.0, max_value=100.0, value=50.0)
-#         dew_point_2m = st.number_input("dew_point_2m (°C)", value=15.0)
-#         apparent_temperature = st.number_input("apparent_temperature (°C)", value=26.0)
-#     with c2:
-#         wind_speed_10m = st.number_input("wind_speed_10m (km/h)", min_value=0.0, value=10.0)
-#         wind_direction_10m = st.number_input("wind_direction_10m (°)", min_value=0.0, max_value=360.0, value=180.0)
-#         cloud_cover = st.number_input("cloud_cover (%)", min_value=0.0, max_value=100.0, value=20.0)
-
-#     submitted = st.form_submit_button("Prédire")
-
-# if submitted:
-#     # --- Construire une ligne conforme au pipeline ---
-#     row = {}
-
-#     # 1) Gestion du temps : soit 'time', soit Hour/Day/Month
-#     if time_mode == "Colonne 'time' (unique)":
-#         # Le pipeline possède le transformer TimeFeatures, donc on peut fournir 'time'
-#         # et il extraira Hour/Day/Month.
-#         row[RAW_TIME] = pd.to_datetime(dt) if dt is not None else pd.NaT
-#         # On ajoute quand même les colonnes Hour/Day/Month (remplies à 0),
-#         # le transformer les écrasera si 'time' est présent.
-#         row["Hour"] = 0
-#         row["Day"] = 0
-#         row["Month"] = 0
-#     else:
-#         # Pas de colonne 'time' ; on renseigne explicitement les 3 colonnes
-#         row["Hour"] = int(hour)
-#         row["Day"] = int(day)
-#         row["Month"] = int(month)
-#         # Ajouter la colonne 'time' vide pour satisfaire l’ordre attendu
-#         row[RAW_TIME] = pd.NaT
-
-#     # 2) Variables météo (exactement les noms utilisés à l’entraînement)
-#     row['temperature_2m (°C)'] = float(temperature_2m)
-#     row['relative_humidity_2m (%)'] = float(relative_humidity_2m)
-#     row['dew_point_2m (°C)'] = float(dew_point_2m)
-#     row['apparent_temperature (°C)'] = float(apparent_temperature)
-#     row['wind_speed_10m (km/h)'] = float(wind_speed_10m)
-#     row['wind_direction_10m (°)'] = float(wind_direction_10m)
-#     row['cloud_cover (%)'] = float(cloud_cover)
-
-#     # 3) Construire le DataFrame avec **toutes** les colonnes dans l’ordre attendu
-#     for col in ALL_FEATURES_WITH_TIME:
-#         row.setdefault(col, 0 if col in TIME_FEATURES else 0.0)
-
-#     X = pd.DataFrame([row], columns=ALL_FEATURES_WITH_TIME)
-
-#     # 4) Prédiction
-#     try:
-#         y = model.predict(X)
-#         pred = float(y[0])
-#         st.success("✅ Prédiction effectuée")
-#         st.metric("Prediction (W/m²)", f"{pred:,.2f}")
-#         # Export CSV d’une seule ligne
-#         out = X.copy()
-#         out["prediction_W_m2"] = pred
-#         st.download_button(
-#             "⬇️ Télécharger la prédiction (CSV)",
-#             data=out.to_csv(index=False).encode("utf-8"),
-#             file_name="prediction_unique.csv",
-#             mime="text/csv",
-#         )
-#     except Exception as e:
-#         st.error(f"Erreur de prédiction : {e}")
 
 st.title("☀️ Solar Power Prediction — Saisie manuelle")
 
@@ -276,7 +177,7 @@ if submitted:
     except Exception as e:
         st.error(f"Erreur de prédiction : {e}")
 
-
+st.title("☀️ Solar Power Prediction ")
 
 st.write("Upload a CSV that contains either a `time` column **or** the three columns "
          "`Hour`, `Day`, `Month`, plus these weather columns:")
