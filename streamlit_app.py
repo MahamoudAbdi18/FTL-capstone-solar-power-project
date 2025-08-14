@@ -976,7 +976,7 @@ with tab4:
         {
             "name": "Moustapha Ali",
             "linkedin": "https://www.linkedin.com/in/moustaphalifarah/",
-            "avatar": "assets/moustapha.jpg",
+            "avatar": "mous.jpg",
         },
         {
             "name": "Aboubaker Mohamed",
