@@ -971,7 +971,7 @@ with tab4:
         {
             "name": "Mahmoud Abdi",
             "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/",
-            "avatar": "assets/mahmoud.jpg",
+            "avatar": "moud.jpg",
         },
         {
             "name": "Moustapha Ali",
