@@ -698,7 +698,7 @@ with tab3:
             st.error(f"La colonne `time` est manquante dans la source irradiance ({src}).")
             st.stop()
         df["time"] = pd.to_datetime(df["time"], errors="coerce")
-        df = df.dropna(subset=["time"]).set_index("time").sort_index()
+        df = df.dropna(subset=["time"]).set_index("time").sortindex()
         return df
 
     irr = load_internal_irradiance()
@@ -767,7 +767,8 @@ with tab3:
                 fallback = daily_energy[qmask[label]].drop(pd.Timestamp(d), errors="ignore")
             if not fallback.empty:
                 selected[label] = fallback.idxmax().date()
-        used.add(selected.get(label, None))
+        if label in selected:
+            used.add(selected[label])
 
     ordered_labels = ["Spring (≈Mar 20)", "Summer (≈Jun 21)", "Autumn (≈Sep 22)", "Winter (≈Dec 21)"]
     selected_dates = [pd.Timestamp(selected[l]) for l in ordered_labels if l in selected]
@@ -788,68 +789,47 @@ with tab3:
         "Winter (≈Dec 21)":  "Solstice d’hiver",
     }
 
-    # Saisie des panneaux (seulement Pmax + dimensions)
-    # with st.expander("⚙️ Paramètres des panneaux (modifiable)"):
-    #     default_panels = {
-    #         "TRINA": {"Pmax": 620.0, "dims": (2.382, 1.134)},
-    #         "LONGi": {"Pmax": 550.0, "dims": (2.278, 1.134)},
-    #         "JINKO": {"Pmax": 460.0, "dims": (2.182, 1.029)},
-    #     }
-    #     cols = st.columns(3)
-    #     panels = {}
-    #     for i, name in enumerate(default_panels.keys()):
-    #         with cols[i]:
-    #             st.markdown(f"**{name}**")
-    #             pmax = st.number_input(f"Pmax {name} (W)", value=float(default_panels[name]["Pmax"]), step=10.0, key=f"pmax_{name}")
-    #             L = st.number_input(f"Longueur {name} (m)", value=float(default_panels[name]["dims"][0]), step=0.001, format="%.3f", key=f"L_{name}")
-    #             W = st.number_input(f"Largeur {name} (m)", value=float(default_panels[name]["dims"][1]), step=0.001, format="%.3f", key=f"W_{name}")
-    #             panels[name] = {"Pmax": pmax, "dims": (L, W)}
+    # >>>>>>>>>>>>>>> ICI : EXPANDER *DANS* tab3 (avec clés uniques) <<<<<<<<<<<<<<<
+    with st.expander("⚙️ Panneaux à comparer (nom, Pmax, dimensions)"):
+        nb_panels = st.number_input(
+            "Nombre de panneaux à comparer",
+            min_value=1, max_value=8, value=3, step=1, key="nb_panels_tab3"
+        )
 
-    # --- remplace tout l'ancien expander par ceci ---
-with st.expander("⚙️ Panneaux à comparer (nom, Pmax, dimensions)"):
-    nb_panels = st.number_input(
-        "Nombre de panneaux à comparer",
-        min_value=1, max_value=8, value=3, step=1, key="nb_panels"
-    )
+        defaults = [
+            ("TRINA", 620.0, 2.382, 1.134),
+            ("LONGi", 550.0, 2.278, 1.134),
+            ("JINKO", 460.0, 2.182, 1.029),
+        ]
 
-    # Valeurs par défaut (pour pré-remplir les 3 premiers)
-    defaults = [
-        ("TRINA", 620.0, 2.382, 1.134),
-        ("LONGi", 550.0, 2.278, 1.134),
-        ("JINKO", 460.0, 2.182, 1.029),
-    ]
+        panels = {}
+        for i in range(int(nb_panels)):
+            name_d, pmax_d, L_d, W_d = defaults[i] if i < len(defaults) else (f"PANEL{i+1}", 500.0, 1.800, 1.100)
+            c1, c2, c3, c4 = st.columns([1.2, 0.8, 0.8, 0.8])
+            with c1:
+                name = st.text_input(f"Nom panneau #{i+1}", value=name_d, key=f"name_{i}_tab3")
+            with c2:
+                pmax = st.number_input(f"Pmax #{i+1} (W)", min_value=1.0, value=pmax_d, step=10.0, key=f"pmax_{i}_tab3")
+            with c3:
+                L = st.number_input(f"Longueur #{i+1} (m)", min_value=0.3, value=L_d, step=0.001, format="%.3f", key=f"L_{i}_tab3")
+            with c4:
+                W = st.number_input(f"Largeur #{i+1} (m)", min_value=0.3, value=W_d, step=0.001, format="%.3f", key=f"W_{i}_tab3")
 
-    panels = {}
-    for i in range(int(nb_panels)):
-        name_d, pmax_d, L_d, W_d = defaults[i] if i < len(defaults) else (f"PANEL{i+1}", 500.0, 1.800, 1.100)
+            panels[name.strip() or f"PANEL{i+1}"] = {"Pmax": float(pmax), "dims": (float(L), float(W))}
 
-        c1, c2, c3, c4 = st.columns([1.2, 0.8, 0.8, 0.8])
-        with c1:
-            name = st.text_input(f"Nom panneau #{i+1}", value=name_d, key=f"name_{i}")
-        with c2:
-            pmax = st.number_input(f"Pmax #{i+1} (W)", min_value=1.0, value=pmax_d, step=10.0, key=f"pmax_{i}")
-        with c3:
-            L = st.number_input(f"Longueur #{i+1} (m)", min_value=0.3, value=L_d, step=0.001, format="%.3f", key=f"L_{i}")
-        with c4:
-            W = st.number_input(f"Largeur #{i+1} (m)", min_value=0.3, value=W_d, step=0.001, format="%.3f", key=f"W_{i}")
-
-        panels[name.strip() or f"PANEL{i+1}"] = {"Pmax": float(pmax), "dims": (float(L), float(W))}
-
-    # Déduplique proprement les noms vides/identiques (Panel, Panel_1, …)
-    dedup = {}
-    seen = set()
-    for i, (nm, spec) in enumerate(panels.items(), start=1):
-        base = nm or f"PANEL{i}"
-        n = base
-        k = 1
-        while n in seen:
-            n = f"{base}_{k}"
-            k += 1
-        dedup[n] = spec
-        seen.add(n)
-    panels = dedup
-# --- fin du nouveau bloc ---
-
+        # Dé-duplique proprement (Panel, Panel_1, …)
+        dedup, seen = {}, set()
+        for i, (nm, spec) in enumerate(panels.items(), start=1):
+            base = nm or f"PANEL{i}"
+            n = base
+            k = 1
+            while n in seen:
+                n = f"{base}_{k}"
+                k += 1
+            dedup[n] = spec
+            seen.add(n)
+        panels = dedup
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     # Construire blocs journaliers
     blocks, labels_for_blocks = [], []
@@ -895,14 +875,9 @@ with st.expander("⚙️ Panneaux à comparer (nom, Pmax, dimensions)"):
     ax1.set_ylabel("Rayonnement solaire (W/m²)")
     ax1.set_xticks([])
 
-    # ax2 = fig.add_subplot(2, 1, 2)
-    # for name in panels.keys():
-    #     style = "--" if name.upper() == "JINKO" else "-"
-    #     ax2.plot(df_sel["time_series_h"], df_sel[name], linewidth=2, linestyle=style, label=name)
-
     ax2 = fig.add_subplot(2, 1, 2)
     for idx, (name, _) in enumerate(panels.items()):
-        linestyle = "--" if idx % 2 else "-"   # alterne plein / pointillé pour distinguer
+        linestyle = "--" if idx % 2 else "-"
         ax2.plot(df_sel["time_series_h"], df_sel[name], linewidth=2, linestyle=linestyle, label=name)
     for x in boundary_idx: ax2.axvline(x)
     ax2.set_ylabel("Puissance de sortie (W/m²)")
@@ -925,19 +900,15 @@ with st.expander("⚙️ Panneaux à comparer (nom, Pmax, dimensions)"):
         annual_density_kWh_m2[name] = energy_density_kWh_m2
         annual_module_kWh[name] = energy_density_kWh_m2 * area
 
-    # labels = list(panels.keys())
-    # vals_module = [annual_module_kWh[k] for k in labels]
-    # vals_density = [annual_density_kWh_m2[k] for k in labels]
     labels = list(panels.keys())
     vals_module  = [annual_module_kWh[k] for k in labels]
     vals_density = [annual_density_kWh_m2[k] for k in labels]
-
 
     fig4 = plt.figure(figsize=(10, 8))
     ax4a = fig4.add_subplot(2, 1, 1)
     bars1 = ax4a.bar(labels, vals_module)
     ax4a.set_ylabel("Énergie annuelle (kWh/an)")
-    ax4a.set_title("(a) Module unique")
+    ax4a.set_title("(a) Module unique)")
     for b, v in zip(bars1, vals_module):
         ax4a.text(b.get_x() + b.get_width()/2, b.get_height()*1.01, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
 
@@ -961,23 +932,22 @@ with st.expander("⚙️ Panneaux à comparer (nom, Pmax, dimensions)"):
         }),
         use_container_width=True
     )
+
 # ---------------- TAB 4 : Équipe ----------------
 with tab4:
     st.subheader("👥 Équipe du projet")
     st.caption("Cliquez pour ouvrir les profils LinkedIn.")
 
-    # 👉 RENSEIGNE ICI les noms + liens LinkedIn
     TEAM = [
-        {"name": "Mahmoud Abdi",        "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/"},
-        {"name": "Moustapha Ali",       "linkedin": "https://www.linkedin.com/in/moustaphalifarah/"},
-        {"name": "Aboubaker Mohamed",   "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app/"},
-        # {"name": "Autre membre", "linkedin": "https://..."}  # ajoute si besoin
+        {"name": "Mahmoud Abdi",      "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/"},
+        {"name": "Moustapha Ali",     "linkedin": "https://www.linkedin.com/in/moustaphalifarah/"},
+        {"name": "Aboubaker Mohamed", "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273/"},
     ]
 
     if not TEAM:
         st.info("Aucun membre défini. Renseigne la liste TEAM ci-dessus.")
     else:
-        per_row = 3  # 3 colonnes par rangée (adapte si besoin)
+        per_row = 3
         for i in range(0, len(TEAM), per_row):
             row = TEAM[i:i+per_row]
             cols = st.columns(len(row))
@@ -986,7 +956,6 @@ with tab4:
                     st.markdown(f"**{member.get('name','(Sans nom)')}**")
                     url = (member.get("linkedin") or "").strip()
                     if url:
-                        # Streamlit 1.48.1 : link_button est OK
                         st.link_button("LinkedIn", url)
                     else:
                         st.caption("Lien LinkedIn non fourni")
