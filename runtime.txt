@@ -1,1 +1,15 @@
 python-3.11
+# versions compatibles Python 3.11 et stables pour le déploiement
+
+
+#scikit-learn
+
+
+#streamlit
+#>=2.0.0
+#scipy
+
+sklearn==1.7.1
+numpy==2.3.2
+pandas==2.3.1
+joblib==1.5.1
