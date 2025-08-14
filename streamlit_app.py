@@ -28,7 +28,6 @@ BASE_COLS = [
     'temperature_2m (°C)',
     'relative_humidity_2m (%)',
     'dew_point_2m (°C)',
-    'apparent_temperature (°C)',
     'wind_speed_10m (km/h)',
     'wind_direction_10m (°)',
     'cloud_cover (%)'
@@ -127,7 +126,6 @@ with st.form("manual_input_form"):
         temperature_2m = st.number_input("temperature_2m (°C)", value=25.0)
         relative_humidity_2m = st.number_input("relative_humidity_2m (%)", min_value=0.0, max_value=100.0, value=50.0)
         dew_point_2m = st.number_input("dew_point_2m (°C)", value=15.0)
-        apparent_temperature = st.number_input("apparent_temperature (°C)", value=26.0)
     with c2:
         wind_speed_10m = st.number_input("wind_speed_10m (km/h)", min_value=0.0, value=10.0)
         wind_direction_10m = st.number_input("wind_direction_10m (°)", min_value=0.0, max_value=360.0, value=180.0)
@@ -151,7 +149,6 @@ if submitted:
     row['temperature_2m (°C)'] = float(temperature_2m)
     row['relative_humidity_2m (%)'] = float(relative_humidity_2m)
     row['dew_point_2m (°C)'] = float(dew_point_2m)
-    row['apparent_temperature (°C)'] = float(apparent_temperature)
     row['wind_speed_10m (km/h)'] = float(wind_speed_10m)
     row['wind_direction_10m (°)'] = float(wind_direction_10m)
     row['cloud_cover (%)'] = float(cloud_cover)
