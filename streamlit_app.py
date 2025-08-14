@@ -174,6 +174,250 @@ if submitted:
     except Exception as e:
         st.error(f"Erreur de prédiction : {e}")
 
+#*****************************
+
+import matplotlib.pyplot as plt
+
+st.markdown("---")
+st.header("📈 Évaluation de performance des panneaux (à partir d’un CSV)")
+
+eval_file = st.file_uploader("Importer un CSV (avec une colonne d’irradiance inclinée)", type=["csv"], key="eval_csv")
+
+with st.expander("Paramètres des panneaux (modifiable)"):
+    # Dimensions en mètres (L x l) et Pmax en W
+    default_panels = {
+        "TRINA": {"Pmax": 620.0, "dims": (2.382, 1.134)},
+        "LONGi": {"Pmax": 550.0, "dims": (2.278, 1.134)},
+        "JINKO": {"Pmax": 460.0, "dims": (2.182, 1.029)},
+    }
+    cols = st.columns(3)
+    edited = {}
+    for i, name in enumerate(default_panels.keys()):
+        with cols[i]:
+            st.markdown(f"**{name}**")
+            pmax = st.number_input(f"Pmax {name} (W)", value=float(default_panels[name]["Pmax"]), step=10.0, key=f"pmax_{name}")
+            L = st.number_input(f"Longueur {name} (m)", value=float(default_panels[name]["dims"][0]), step=0.001, format="%.3f", key=f"L_{name}")
+            W = st.number_input(f"Largeur {name} (m)", value=float(default_panels[name]["dims"][1]), step=0.001, format="%.3f", key=f"W_{name}")
+            edited[name] = {"Pmax": pmax, "dims": (L, W)}
+
+st.caption("Astuce : l’irradiance inclinée est souvent nommée comme `global_tilted_irradiance`.")
+
+if eval_file is not None:
+    try:
+        df = pd.read_csv(eval_file)
+        # Nettoyage index
+        if "Unnamed: 0" in df.columns:
+            df = df.drop(columns="Unnamed: 0")
+        if "time" not in df.columns:
+            st.error("Colonne `time` manquante dans le CSV.")
+            st.stop()
+        df["time"] = pd.to_datetime(df["time"], errors="coerce")
+        df = df.dropna(subset=["time"]).set_index("time").sort_index()
+
+        # Détection colonnes
+        tilt_candidates = [c for c in df.columns if "global_tilted_irradiance" in c.lower()]
+        if not tilt_candidates:
+            st.error("Aucune colonne contenant 'global_tilted_irradiance' trouvée.")
+            st.stop()
+        tilt_col = tilt_candidates[0]
+
+        horiz_cols = [c for c in df.columns if ("horizontal" in c.lower() and "irradiance" in c.lower())]
+        horiz_col = horiz_cols[0] if horiz_cols else None
+
+        # Horaire → moyenne horaire
+        df_hourly = df.resample("H").mean(numeric_only=True)
+        df_hourly["date"] = df_hourly.index.normalize()
+        df_hourly["year"] = df_hourly.index.year
+
+        # Choix de l’année avec le plus de jours couverts
+        days_per_year = df_hourly.groupby("year")["date"].nunique().sort_values(ascending=False)
+        if days_per_year.empty:
+            st.error("Aucune donnée horaire après agrégation.")
+            st.stop()
+        best_year = int(days_per_year.index[0])
+        year_df = df_hourly[df_hourly.index.year == best_year].copy()
+
+        # Énergie journalière proxy (Wh/m² ≈ somme des W/m² horaires)
+        daily_energy = year_df[tilt_col].resample("D").sum(min_count=1).dropna()
+        daily_energy.index = daily_energy.index.normalize()
+
+        def in_range(start_mmdd, end_mmdd):
+            return (daily_energy.index >= pd.Timestamp(f"{best_year}-{start_mmdd}")) & \
+                   (daily_energy.index <= pd.Timestamp(f"{best_year}-{end_mmdd}"))
+
+        windows = {
+            "Spring (≈Mar 20)": in_range("03-10", "03-30"),
+            "Summer (≈Jun 21)": in_range("06-11", "07-01"),
+            "Autumn (≈Sep 22)": in_range("09-12", "10-02"),
+            "Winter (≈Dec 21)": in_range("12-11", "12-31"),
+        }
+        qmask = {
+            "Spring (≈Mar 20)": ((daily_energy.index >= f"{best_year}-01-01") & (daily_energy.index <= f"{best_year}-03-31")),
+            "Summer (≈Jun 21)": ((daily_energy.index >= f"{best_year}-04-01") & (daily_energy.index <= f"{best_year}-06-30")),
+            "Autumn (≈Sep 22)": ((daily_energy.index >= f"{best_year}-07-01") & (daily_energy.index <= f"{best_year}-09-30")),
+            "Winter (≈Dec 21)": ((daily_energy.index >= f"{best_year}-10-01") & (daily_energy.index <= f"{best_year}-12-31")),
+        }
+
+        # Sélection des 4 jours
+        selected = {}
+        for label, wmask in windows.items():
+            cand = daily_energy[wmask]
+            if not cand.empty:
+                selected[label] = cand.idxmax().date()
+            else:
+                qcand = daily_energy[qmask[label]]
+                if not qcand.empty:
+                    selected[label] = qcand.idxmax().date()
+
+        # Unicité
+        used = set()
+        for label in list(selected.keys()):
+            d = selected[label]
+            if d in used:
+                wmask = windows[label]
+                fallback = daily_energy[wmask].drop(pd.Timestamp(d), errors="ignore")
+                if fallback.empty:
+                    fallback = daily_energy[qmask[label]].drop(pd.Timestamp(d), errors="ignore")
+                if not fallback.empty:
+                    selected[label] = fallback.idxmax().date()
+            used.add(selected[label])
+
+        ordered_labels = ["Spring (≈Mar 20)", "Summer (≈Jun 21)", "Autumn (≈Sep 22)", "Winter (≈Dec 21)"]
+        selected_dates = [pd.Timestamp(selected[l]) for l in ordered_labels if l in selected]
+        if len(selected_dates) < 4:
+            top = daily_energy.sort_values(ascending=False)
+            uniq = []
+            for d in top.index:
+                if d.date() not in uniq:
+                    uniq.append(d.date())
+                if len(uniq) == 4:
+                    break
+            selected_dates = [pd.Timestamp(d) for d in sorted(uniq)]
+
+        season_fr = {
+            "Spring (≈Mar 20)":  "Équinoxe de printemps",
+            "Summer (≈Jun 21)":  "Solstice d’été",
+            "Autumn (≈Sep 22)":  "Équinoxe d’automne",
+            "Winter (≈Dec 21)":  "Solstice d’hiver",
+        }
+
+        # Construire les blocs journaliers
+        blocks, labels_for_blocks = [], []
+        for lab, d in zip(ordered_labels, selected_dates):
+            day_block = year_df[year_df.index.normalize() == d]
+            if not day_block.empty:
+                blocks.append(day_block)
+                labels_for_blocks.append(season_fr[lab])
+
+        if len(blocks) < 2:
+            st.error("Jours distincts insuffisants pour tracer la figure saisonnière.")
+            st.stop()
+
+        df_sel = pd.concat(blocks, axis=0)
+        df_sel["time_series_h"] = np.arange(1, len(df_sel) + 1)
+
+        # Séparateurs verticaux
+        boundary_idx = []
+        cum = 0
+        for blk in blocks[:-1]:
+            cum += len(blk)
+            boundary_idx.append(cum)
+
+        # Puissance surfacique instantanée (W/m²) pour chaque panneau
+        panels = edited  # depuis l’expander
+        for name, p in panels.items():
+            area = p["dims"][0] * p["dims"][1]          # m²
+            eta  = p["Pmax"] / (1000.0 * area)          # rendement STC
+            df_sel[name] = eta * df_sel[tilt_col]       # W/m²
+
+        # ===== Figure saisonnière (deux sous-graphiques) =====
+        fig = plt.figure(figsize=(11, 8))
+
+        ax1 = fig.add_subplot(2, 1, 1)
+        if horiz_col is not None:
+            ax1.plot(df_sel["time_series_h"], df_sel[horiz_col], linewidth=2, label="Irradiance horizontale globale")
+        ax1.plot(df_sel["time_series_h"], df_sel[tilt_col], linewidth=2, label="Irradiance sur panneaux inclinés")
+        for x in boundary_idx:
+            ax1.axvline(x)
+        # Étiquettes centrées
+        start = 0
+        for i, blk in enumerate(blocks):
+            end = start + len(blk)
+            center = (start + end) / 2
+            ax1.text(center, ax1.get_ylim()[1] * 0.95, labels_for_blocks[i], ha="center", va="top", fontsize=10, fontweight="bold")
+            start = end
+        ncols = 2 if horiz_col is not None else 1
+        ax1.legend(loc='lower center', bbox_to_anchor=(0.5, 1.18), ncol=ncols, frameon=True)
+        ax1.set_ylabel("Rayonnement solaire (W/m²)")
+        ax1.set_xticks([])
+
+        ax2 = fig.add_subplot(2, 1, 2)
+        for name in panels.keys():
+            style = "--" if name.upper() == "JINKO" else "-"
+            ax2.plot(df_sel["time_series_h"], df_sel[name], linewidth=2, linestyle=style, label=name)
+        for x in boundary_idx:
+            ax2.axvline(x)
+        ax2.set_ylabel("Puissance de sortie (W/m²)")
+        ax2.set_xlabel("Série temporelle (h)")
+        ax2.legend(loc="upper left", frameon=True)
+
+        plt.tight_layout()
+        st.pyplot(fig, clear_figure=True)
+
+        st.info(f"Année utilisée : **{best_year}** · Jours sélectionnés : " +
+                ", ".join([d.strftime('%Y-%m-%d') for d in selected_dates]))
+
+        # ===== Énergie annuelle =====
+        annual_density_kWh_m2 = {}
+        annual_module_kWh = {}
+        for name, p in panels.items():
+            area = p["dims"][0] * p["dims"][1]
+            eta  = p["Pmax"] / (1000.0 * area)
+            power_density = eta * year_df[tilt_col]           # W/m² (horaire)
+            energy_density_kWh_m2 = power_density.sum() / 1000.0  # Wh/m² -> kWh/m²
+            annual_density_kWh_m2[name] = energy_density_kWh_m2
+            annual_module_kWh[name] = energy_density_kWh_m2 * area
+
+        labels = list(panels.keys())
+        vals_module = [annual_module_kWh[k] for k in labels]
+        vals_density = [annual_density_kWh_m2[k] for k in labels]
+
+        fig4 = plt.figure(figsize=(10, 8))
+        ax4a = fig4.add_subplot(2, 1, 1)
+        bars1 = ax4a.bar(labels, vals_module)
+        ax4a.set_ylabel("Énergie annuelle (kWh/an)")
+        ax4a.set_title("(a) Module unique")
+        for b, v in zip(bars1, vals_module):
+            ax4a.text(b.get_x() + b.get_width()/2, b.get_height()*1.01, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
+
+        ax4b = fig4.add_subplot(2, 1, 2)
+        bars2 = ax4b.bar(labels, vals_density)
+        ax4b.set_ylabel("Énergie annuelle (kWh/m²·an)")
+        ax4b.set_title("(b) Par unité de surface")
+        ax4b.set_xlabel("Panneau")
+        for b, v in zip(bars2, vals_density):
+            ax4b.text(b.get_x() + b.get_width()/2, b.get_height()*1.01, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
+
+        plt.tight_layout()
+        st.pyplot(fig4, clear_figure=True)
+
+        # Résumé numérique
+        st.subheader("Résumé annuel estimé")
+        st.dataframe(
+            pd.DataFrame({
+                "Panneau": labels,
+                "Énergie module (kWh/an)": [round(x, 1) for x in vals_module],
+                "Énergie surfacique (kWh/m²·an)": [round(x, 1) for x in vals_density],
+            })
+        )
+
+    except Exception as e:
+        st.error(f"Erreur durant l’évaluation : {e}")
+else:
+    st.info("Importez un CSV pour lancer l’évaluation.")
+
+
+#**************
 st.title("☀️ Solar Power Prediction ")
 
 st.write("Upload a CSV that contains either a `time` column **or** the three columns "
