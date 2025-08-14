@@ -120,7 +120,7 @@ if file is not None:
                            out.to_csv(index=False).encode("utf-8"),
                           "predictions.csv",
                           "text/csv")
-   except Exception as e:
+    except Exception as e:
         st.error(f"Batch prediction error: {e}")
 
 
