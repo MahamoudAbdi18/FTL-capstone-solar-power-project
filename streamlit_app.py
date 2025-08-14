@@ -521,34 +521,7 @@ if "__main__" not in sys.modules:
 setattr(sys.modules["__main__"], "TimeFeatures", TimeFeatures)
 
 # ---------------- Chargement du modèle ----------------
-# MODEL_PATH = "model_stacking_pipeline.pkl"
 
-# def _maybe_download_model():
-#     url = os.environ.get("MODEL_URL", "").strip()
-#     if url and not os.path.exists(MODEL_PATH):
-#         import urllib.request
-#         st.info("Downloading model…")
-#         urllib.request.urlretrieve(url, MODEL_PATH)
-#         st.success("Model downloaded.")
-
-# @st.cache_resource
-# def load_model():
-#     if not os.path.exists(MODEL_PATH):
-#         _maybe_download_model()
-#     if not os.path.exists(MODEL_PATH):
-#         st.error("Model file not found. "
-#                  "Assure-toi que `model_stacking_pipeline.pkl` est dans le repo (Git LFS), "
-#                  "ou définis la variable d’env. MODEL_URL vers un lien direct.")
-#         st.stop()
-#     try:
-#         return joblib.load(MODEL_PATH)
-#     except Exception as e:
-#         st.error(f"Failed to load model: {e}")
-#         st.stop()
-
-# model = load_model()
-
-# ---------------- Chargement du modèle ----------------
 MODEL_PATH = "model_stacking_pipeline.pkl"
 
 def _maybe_download_model():
