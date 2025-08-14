@@ -1046,10 +1046,41 @@ with tab3:
 
 # ---------------- TAB 4 : Équipe (style cartes) ----------------
 # ---------------- TAB 4 : Équipe ----------------
-with tab4:
-    st.subheader("👥💡 Meet the Team")
+# ---------------- TAB 4 : Équipe (style cartes) ----------------
+import os, base64, mimetypes
 
-    # Mettez vos chemins/URL d’images ici
+with tab4:
+    st.subheader("👨‍💼💡 Meet the Team")
+
+    # ---------- helpers ----------
+    def _as_data_uri(path: str) -> str | None:
+        """Fichier local -> data:URI (pour <img src="..."> dans st.markdown)."""
+        if not path or not os.path.exists(path):
+            return None
+        mime = mimetypes.guess_type(path)[0] or "image/jpeg"
+        with open(path, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode("ascii")
+        return f"data:{mime};base64,{b64}"
+
+    def _resolve_img(src: str | None) -> str:
+        """Accepte data:, http(s) ou chemin local. Fallback propre."""
+        if not src:
+            return "https://static.streamlit.io/examples/dice.jpg"
+        s = src.strip()
+        if s.startswith(("data:image/", "http://", "https://")):
+            return s
+        return _as_data_uri(s) or "https://static.streamlit.io/examples/dice.jpg"
+
+    # petit logo LinkedIn en SVG encodé (pas d'appel externe)
+    _linkedin_svg = """
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+    <rect width="448" height="448" rx="48" ry="48" fill="#0A66C2"/>
+    <path fill="#fff" d="M100.3 448H7V148.9h93.3V448zM53.7 108.1C24 108.1 0 84 0 54.3S24 0.6 53.7 0.6s53.7 24.1 53.7 53.7-24.1 53.8-53.7 53.8zM447.9 448h-93.1V302.4c0-34.7-0.7-79.3-48.3-79.3-48.3 0-55.7 37.7-55.7 76.6V448h-93.1V148.9H248v40.8h1.3c13.9-26.4 47.9-54.3 98.6-54.3 105.4 0 124.9 69.4 124.9 159.6V448z"/>
+    </svg>
+    """.strip()
+    _linkedin_data_uri = "data:image/svg+xml;base64," + base64.b64encode(_linkedin_svg.encode("utf-8")).decode("ascii")
+
+    # ---------- données équipe ----------
     TEAM = [
         {
             "name": "Mahmoud Abdi",
@@ -1064,72 +1095,41 @@ with tab4:
         {
             "name": "Aboubaker Mohamed",
             "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273/",
-            "avatar": "photo/aboubaker.jpg",   # assurez-vous que ce fichier existe
+            "avatar": "photo/j.jpg",  # ⬅️ mets le vrai fichier si différent
         },
+        # Exemple d’un 4e membre pour avoir une ligne complète :
+        # {"name": "Muktar Abdinasir", "linkedin": "https://...", "avatar": "photo/muktar.jpg"},
     ]
 
-    # ---------- CSS : cartes + grille + images uniformes ----------
-    st.markdown("""
-    <style>
-      .team-grid{
-        display:grid;
-        grid-template-columns:repeat(3,minmax(220px,1fr));
-        gap:28px;
-        margin-top:10px;
-      }
-      .team-card{
-        background:#fff;
-        border:1px solid #eee;
-        border-radius:18px;
-        padding:14px;
-        box-shadow:0 8px 24px rgba(0,0,0,.06);
-        text-align:center;
-      }
-      .team-card img.avatar{
-        width:100%;
-        height:260px;                 /* <<< hauteur uniforme du "cadre" */
-        border-radius:12px;
-        object-fit:cover;             /* <<< recadre sans déformer */
-        object-position:center;
-      }
-      .team-card h4{
-        margin:12px 0 6px;
-        font-weight:700;
-      }
-      .team-card a.link{
-        display:inline-flex; align-items:center; gap:8px;
-        padding:6px 10px;
-        border:1px solid #e5e5e5; border-radius:10px;
-        text-decoration:none; font-weight:600;
-      }
-      .team-card a.link img{ width:18px; height:18px; }
-      /* responsive */
-      @media (max-width: 900px){ .team-grid{grid-template-columns:repeat(2,1fr);} }
-      @media (max-width: 600px){ .team-grid{grid-template-columns:1fr;} }
-    </style>
-    """, unsafe_allow_html=True)
+    def member_card(name: str, avatar: str | None, linkedin: str | None):
+        img = _resolve_img(avatar)
+        ln = (linkedin or "").strip()
 
-    def card_html(m):
-        name   = m.get("name","")
-        url    = (m.get("linkedin") or "").strip()
-        avatar = (m.get("avatar") or "").strip() or "https://static.streamlit.io/examples/dice.jpg"
-        linkedin = (
-            f'<a class="link" href="{url}" target="_blank">'
-            f'<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" alt="">'
-            f'LinkedIn</a>'
-            if url else '<span style="color:#888">LinkedIn non fourni</span>'
-        )
-        return f"""
-          <div class="team-card">
-            <img class="avatar" src="{avatar}" alt="{name}">
-            <h4>{name}</h4>
-            {linkedin}
-          </div>
+        html = f"""
+        <div style="text-align:center;margin-bottom:28px;">
+          <img src="{img}" alt="{name}" 
+               style="width:100%;max-width:260px;aspect-ratio:1/1;
+                      object-fit:cover;border-radius:16px;
+                      box-shadow:0 4px 16px rgba(0,0,0,.08);" />
+          <div style="margin-top:10px;font-weight:600;color:#333;">{name}</div>
+          {f'<a href="{ln}" target="_blank" aria-label="LinkedIn">'
+             f'<img src="{_linkedin_data_uri}" style="width:34px;height:34px;margin-top:10px;"/></a>'
+            if ln else '<div style="height:34px;margin-top:10px;opacity:.5;">(LinkedIn non fourni)</div>'}
+        </div>
         """
+        st.markdown(html, unsafe_allow_html=True)
 
-    st.markdown(
-        '<div class="team-grid">' + ''.join(card_html(m) for m in TEAM) + '</div>',
-        unsafe_allow_html=True
-    )
-
+    # ---------- rendu en grille ----------
+    if not TEAM:
+        st.info("Aucun membre défini. Renseigne la liste TEAM ci-dessus.")
+    else:
+        per_row = 4  # comme ta capture
+        for i in range(0, len(TEAM), per_row):
+            row = TEAM[i:i+per_row]
+            cols = st.columns(len(row), gap="large")
+            for col, m in zip(cols, row):
+                with col:
+                    member_card(m.get("name","(Sans nom)"),
+                                m.get("avatar"),
+                                m.get("linkedin"))
 
