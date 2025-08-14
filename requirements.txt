@@ -3,7 +3,7 @@
 
 scikit-learn==1.7.1
 
-
+python==3.11
 streamlit
 pydantic>=2.0.0
 scipy
