@@ -962,15 +962,19 @@ with tab3:
 #                         st.caption("Lien LinkedIn non fourni")
 
 # ---------------- TAB 4 : Équipe ----------------
+# ---------------- TAB 4 : Équipe ----------------
 with tab4:
     st.subheader("👥 Équipe du projet")
     st.caption("Cliquez pour ouvrir les profils LinkedIn.")
 
-    # ✅ Renseigne aussi 'avatar' (chemin relatif dans le repo ou URL publique)
+    import base64, mimetypes
+    from pathlib import Path
+
     TEAM = [
         {
             "name": "Mahmoud Abdi",
             "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/",
+            # OK : fichier à la racine
             "avatar": "moud.jpg",
         },
         {
@@ -978,43 +982,70 @@ with tab4:
             "linkedin": "https://www.linkedin.com/in/moustaphalifarah/",
             "avatar": "mous.jpg",
         },
-        {
-            "name": "Aboubaker Mohamed",
-            "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273/",
-            "avatar": "assets/aboubaker.jpg",
-        },
+        # { "name": "Aboubaker Mohamed", "linkedin": "...", "avatar": "assets/aboubaker.jpg" },
     ]
 
-    def linkedin_button(name: str, url: str, avatar: str):
-        # Bouton custom avec image ronde + libellé
+    def _initials(full_name: str) -> str:
+        parts = [p for p in full_name.split() if p]
+        return ((parts[0][0] + (parts[1][0] if len(parts) > 1 else "")).upper() if parts else "?")
+
+    def _as_data_uri(local_path: str | None) -> str | None:
+        """Si local_path existe, retourne une data URI base64."""
+        if not local_path:
+            return None
+        p = Path(local_path)
+        if not p.exists():
+            return None
+        mime = mimetypes.guess_type(p.name)[0] or "image/jpeg"
+        data = base64.b64encode(p.read_bytes()).decode("ascii")
+        return f"data:{mime};base64,{data}"
+
+    def linkedin_button(name: str, url: str, avatar: str | None):
+        # avatar peut être une URL http(s) ou un fichier local
+        if avatar and (avatar.startswith("http://") or avatar.startswith("https://")):
+            img_src = avatar
+        else:
+            img_src = _as_data_uri(avatar)
+
+        if img_src:
+            avatar_html = f'''
+                <img src="{img_src}" alt="{name}"
+                     style="width:26px;height:26px;border-radius:50%;object-fit:cover;">
+            '''
+        else:
+            ini = _initials(name)
+            avatar_html = f'''
+                <div style="
+                    width:26px;height:26px;border-radius:50%;
+                    display:flex;align-items:center;justify-content:center;
+                    background:#eee;border:1px solid #ddd;font-size:12px;font-weight:700;color:#555;">
+                    {ini}
+                </div>
+            '''
+
         html = f"""
         <a href="{url}" target="_blank" style="text-decoration:none;">
-          <div style="
-            display:inline-flex; align-items:center; gap:10px;
-            padding:8px 12px; border:1px solid #ddd; border-radius:10px;">
-            <img src="{avatar}" alt="{name}" 
-                 style="width:26px;height:26px;border-radius:50%;object-fit:cover;">
+          <div style="display:inline-flex;align-items:center;gap:10px;
+                      padding:8px 12px;border:1px solid #ddd;border-radius:10px;">
+            {avatar_html}
             <span style="font-weight:600;">LinkedIn</span>
           </div>
         </a>
         """
         st.markdown(html, unsafe_allow_html=True)
 
-    if not TEAM:
-        st.info("Aucun membre défini. Renseigne la liste TEAM ci-dessus.")
-    else:
-        per_row = 3
-        for i in range(0, len(TEAM), per_row):
-            row = TEAM[i:i+per_row]
-            cols = st.columns(len(row))
-            for col, m in zip(cols, row):
-                with col:
-                    st.markdown(f"**{m.get('name','(Sans nom)')}**")
-                    url = (m.get("linkedin") or "").strip()
-                    avatar = (m.get("avatar") or "").strip()
-                    if url:
-                        # Si l'image n'existe pas ou est vide, le bouton marchera quand même sans l'aperçu
-                        linkedin_button(m.get("name",""), url, avatar or "https://static.streamlit.io/examples/dice.jpg")
-                    else:
-                        st.caption("Lien LinkedIn non fourni")
+    # Rendu en grille
+    per_row = 3
+    for i in range(0, len(TEAM), per_row):
+        row = TEAM[i:i+per_row]
+        cols = st.columns(len(row))
+        for col, m in zip(cols, row):
+            with col:
+                name = m.get("name", "(Sans nom)")
+                url = (m.get("linkedin") or "").strip()
+                st.markdown(f"**{name}**")
+                if url:
+                    linkedin_button(name, url, m.get("avatar"))
+                else:
+                    st.caption("Lien LinkedIn non fourni")
 
