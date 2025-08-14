@@ -465,7 +465,8 @@ from datetime import datetime
 
 # ========= Où se trouve TON fichier d’irradiance interne ? =========
 # Mets ici le chemin vers ton CSV dans le repo (par ex. data/Energy_solar.csv)
-IRR_PATH = "data/Energy_solar.csv"
+IRR_PATH = "Energy_solar.csv"
+
 
 # --- Show runtime versions to debug env mismatches ---
 try:
