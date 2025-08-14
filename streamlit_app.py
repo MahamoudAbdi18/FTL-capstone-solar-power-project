@@ -1095,7 +1095,7 @@ with tab4:
         {
             "name": "Aboubaker Mohamed",
             "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273/",
-            "avatar": "photo/j.jpg",  # ⬅️ mets le vrai fichier si différent
+            "avatar": "photo/abou.jpg",  # ⬅️ mets le vrai fichier si différent
         },
         # Exemple d’un 4e membre pour avoir une ligne complète :
         # {"name": "Muktar Abdinasir", "linkedin": "https://...", "avatar": "photo/muktar.jpg"},
