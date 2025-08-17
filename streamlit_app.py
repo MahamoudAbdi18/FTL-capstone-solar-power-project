@@ -141,7 +141,7 @@ model = load_model(MODEL_PATH, os.path.getmtime(MODEL_PATH))
 # ========= HERO =========
 left, right = st.columns([1, 1], vertical_alignment="center")
 with left:
-    st.title("☀️ Solar Power Dashboard")
+    st.title("☀️ Tableau de bord de l’énergie solaire")
     st.write("Prédictions à partir des données météo + variables temporelles, prise en charge des fichiers CSV en lot, et évaluation saisonnière du photovoltaïque basée sur les données d’irradiance.")
 with right:
     with st.container(border=True):
@@ -257,8 +257,8 @@ with tab2:
 
 # ---------- TAB 3: Panel Evaluation (internal irradiance) ----------
 with tab3:
-    st.markdown("### Seasonal and Annual PV Performance (from internal irradiance)")
-    st.caption("The app will automatically pick the year with the best coverage and four representative seasonal days.")
+    st.markdown("### Performance photovoltaïque saisonnière et annuelle")
+    st.caption("L’application sélectionnera automatiquement l’année avec la meilleure couverture et quatre jours représentatifs des saisons.")
 
     # Load internal irradiance
     def load_internal_irradiance() -> pd.DataFrame:
@@ -362,8 +362,8 @@ with tab3:
         selected_dates = [pd.Timestamp(d) for d in sorted(uniq)]
 
     # Panels expander
-    with st.expander("⚙️ Panels to compare (name, Pmax, size)"):
-        nb_panels = st.number_input("Number of panels", 1, 8, 3, 1, key="nb_panels_tab3")
+    with st.expander("⚙️ Panneaux à comparer (nom, Pmax, dimensions)"):
+        nb_panels = st.number_input("Nombre de panneaux", 1, 8, 3, 1, key="nb_panels_tab3")
         defaults = [
             ("TRINA", 620.0, 2.382, 1.134),
             ("LONGi", 550.0, 2.278, 1.134),
@@ -373,10 +373,10 @@ with tab3:
         for i in range(int(nb_panels)):
             name_d, pmax_d, L_d, W_d = defaults[i] if i < len(defaults) else (f"PANEL{i+1}", 500.0, 1.800, 1.100)
             c1, c2, c3, c4 = st.columns([1.2, 0.9, 0.9, 0.9])
-            with c1: name = st.text_input(f"Panel #{i+1} Name", value=name_d, key=f"name_{i}_tab3")
+            with c1: name = st.text_input(f"Panneaux #{i+1} Name", value=name_d, key=f"name_{i}_tab3")
             with c2: pmax = st.number_input(f"Pmax #{i+1} (W)", 1.0, value=pmax_d, step=10.0, key=f"pmax_{i}_tab3")
-            with c3: L    = st.number_input(f"Length #{i+1} (m)", 0.3, value=L_d, step=0.001, format="%.3f", key=f"L_{i}_tab3")
-            with c4: W    = st.number_input(f"Width #{i+1} (m)",  0.3, value=W_d, step=0.001, format="%.3f", key=f"W_{i}_tab3")
+            with c3: L    = st.number_input(f"Longueur #{i+1} (m)", 0.3, value=L_d, step=0.001, format="%.3f", key=f"L_{i}_tab3")
+            with c4: W    = st.number_input(f"Largeur #{i+1} (m)",  0.3, value=W_d, step=0.001, format="%.3f", key=f"W_{i}_tab3")
             panels[name.strip() or f"PANEL{i+1}"] = {"Pmax": float(pmax), "dims": (float(L), float(W))}
 
         # Deduplicate names (Panel, Panel_1…)
@@ -428,7 +428,7 @@ with tab3:
         start = end
     ax1.legend(loc='lower center', bbox_to_anchor=(0.5, 1.18),
                ncol=2 if horiz_col is not None else 1, frameon=True)
-    ax1.set_ylabel("Solar Radiation (W/m²)")
+    ax1.set_ylabel("Rayonnement solaire (W/m²)")
     ax1.set_xticks([])
 
     ax2 = fig.add_subplot(2, 1, 2)
@@ -436,14 +436,14 @@ with tab3:
         linestyle = "--" if idx % 2 else "-"
         ax2.plot(df_sel["time_series_h"], df_sel[name], linewidth=2, linestyle=linestyle, label=name)
     for x in boundary_idx: ax2.axvline(x)
-    ax2.set_ylabel("Output Power (W/m²)")
-    ax2.set_xlabel("Time Series (h)")
+    ax2.set_ylabel("Puissance de sortie (W/m²)")
+    ax2.set_xlabel("Série temporelle (h)")
     ax2.legend(loc="upper left", frameon=True)
 
     plt.tight_layout()
     st.pyplot(fig, clear_figure=True)
 
-    st.info(f"Year used: **{best_year}** · Selected days: " + ", ".join([d.strftime('%Y-%m-%d') for d in selected_dates]))
+    st.info(f"Année utilisée: **{best_year}** · Jour selectionnés: " + ", ".join([d.strftime('%Y-%m-%d') for d in selected_dates]))
 
     # Annual energy
     annual_density_kWh_m2, annual_module_kWh = {}, {}
@@ -462,15 +462,15 @@ with tab3:
     fig4 = plt.figure(figsize=(10, 8))
     ax4a = fig4.add_subplot(2, 1, 1)
     bars1 = ax4a.bar(labels, vals_module)
-    ax4a.set_ylabel("Annual Energy (kWh/year)")
-    ax4a.set_title("(a) Single Module")
+    ax4a.set_ylabel("Énergie Annuel (kWh/an)")
+    ax4a.set_title("(a)  Module Unique")
     for b, v in zip(bars1, vals_module):
         ax4a.text(b.get_x() + b.get_width()/2, b.get_height()*1.01, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
 
     ax4b = fig4.add_subplot(2, 1, 2)
     bars2 = ax4b.bar(labels, vals_density)
-    ax4b.set_ylabel("Annual Energy (kWh/m²·year)")
-    ax4b.set_title("(b) Per Unit Area")
+    ax4b.set_ylabel("Énergie Annuel (kWh/m²·an)")
+    ax4b.set_title("(b) Par unité de surface")
     ax4b.set_xlabel("Panel")
     for b, v in zip(bars2, vals_density):
         ax4b.text(b.get_x() + b.get_width()/2, b.get_height()*1.01, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
@@ -478,25 +478,27 @@ with tab3:
     plt.tight_layout()
     st.pyplot(fig4, clear_figure=True)
 
-    st.markdown("#### Annual summary")
+    st.markdown("#### Résumé annuel")
     st.dataframe(
         pd.DataFrame({
             "Panel": labels,
-            "Module Energy (kWh/year)": [round(x, 1) for x in vals_module],
-            "Surface Energy (kWh/m²·year)": [round(x, 1) for x in vals_density],
+            "Énergie du module (kWh/an)": [round(x, 1) for x in vals_module],
+            "Énergie surfacique (kWh/m²·an)": [round(x, 1) for x in vals_density],
         }),
         use_container_width=True
     )
 
 # ---------- TAB 4: Team ----------
 with tab4:
-    st.markdown("### Meet the Team")
-    st.caption("Click a card to open the LinkedIn profile (in a new tab).")
+    st.markdown("### Rencontrez l’équipe")
+    st.caption("Cliquez sur une carte pour ouvrir le profil LinkedIn.")
 
     TEAM = [
         {"name": "Mahmoud Abdi",      "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/", "avatar": "photo/moud.jpg"},
         {"name": "Moustapha Ali",     "linkedin": "https://www.linkedin.com/in/moustaphalifarah/",        "avatar": "photo/mous.jpg"},
         {"name": "Aboubaker Mohamed", "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273/", "avatar": "photo/abou.jpg"},
+        {"name": "Mohamed Abdirazak Achour", "linkedin": "https://www.linkedin.com/in/mohamed-abdourazak-achour-84b591230?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app/", "avatar": "photo/achour.png"},
+
     ]
 
     def _as_data_uri(path: str) -> str | None:
