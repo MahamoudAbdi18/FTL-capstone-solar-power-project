@@ -537,7 +537,7 @@ with tab4:
           {f'<img src="{_linkedin_data_uri}" style="width:30px;height:30px;margin-top:8px;" />' if ln else ""}
         </div>
     """
-       st.markdown(html, unsafe_allow_html=True)
+        st.markdown(html, unsafe_allow_html=True)
 
 
 
