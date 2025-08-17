@@ -166,7 +166,7 @@ with tab1:
     with st.container():
         with st.form("manual_input_form", clear_on_submit=False, border=False):
             st.markdown('<div class="section-title">Temps</div>', unsafe_allow_html=True)
-            if time_mode == "Single `time` column":
+            if time_mode == "Colonne `time` unique":
                 dcol1, dcol2 = st.columns(2)
                 with dcol1:
                     date_val = st.date_input("Date", value=datetime.now().date())
@@ -196,7 +196,7 @@ with tab1:
 
         if submitted:
             row = {}
-            if time_mode == "Single `time` column":
+            if time_mode == "Colonne `time` unique":
                 row[RAW_TIME] = dt; row["Hour"]=row["Day"]=row["Month"]=0
             else:
                 row["Hour"]=int(hour); row["Day"]=int(day); row["Month"]=int(month); row[RAW_TIME]=pd.NaT
