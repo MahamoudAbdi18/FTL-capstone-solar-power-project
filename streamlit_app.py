@@ -522,18 +522,23 @@ with tab4:
     _linkedin_data_uri = "data:image/svg+xml;base64," + base64.b64encode(_linkedin_svg.encode("utf-8")).decode("ascii")
 
     def member_card(name: str, avatar: str | None, linkedin: str | None):
-        img = _resolve_img(avatar)
-        ln  = (linkedin or "").strip()
-        clickable_open = f' onclick="window.open(\'{ln}\', \'_blank\')" ' if ln else ""
-        html = f"""
-        <div class="card" style="text-align:center; cursor:{'pointer' if ln else 'default'};" {clickable_open}>
-          <img src="{img}" alt="{name}" style="width:100%;max-width:240px;aspect-ratio:1/1;
-               object-fit:cover;border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,.08);" />
-          <div style="margin-top:10px;font-weight:700;color:#1f2937">{name}</div>
-          {f'<img src="{_linkedin_data_uri}" style="width:30px;height:30px;margin-top:8px;" />' if ln else ""}
-        </div>
-        """
-        st.markdown(html, unsafe_allow_html=True)
+    img = _resolve_img(avatar)
+    ln  = (linkedin or "").strip()
+    clickable_open = f' onclick="window.open(\'{ln}\', \'_blank\')" ' if ln else ""
+    html = f"""
+    <div class="card" style="text-align:center; cursor:{'pointer' if ln else 'default'};" {clickable_open}>
+      <div style="
+           width:100%; max-width:240px; aspect-ratio:1/1;
+           background:#fff; border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,.08);
+           display:flex; align-items:center; justify-content:center; overflow:hidden;">
+        <img src="{img}" alt="{name}" style="max-width:100%; max-height:100%; object-fit:contain;" />
+      </div>
+      <div style="margin-top:10px;font-weight:700;color:#1f2937">{name}</div>
+      {f'<img src="{_linkedin_data_uri}" style="width:30px;height:30px;margin-top:8px;" />' if ln else ""}
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
 
     if not TEAM:
         st.info("No team members yet. Fill TEAM list above.")
