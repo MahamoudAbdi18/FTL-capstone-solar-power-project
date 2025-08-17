@@ -184,7 +184,7 @@ with tab1:
             st.markdown('<div class="section-title">Weather</div>', unsafe_allow_html=True)
             c1, c2 = st.columns(2)
             with c1:
-                temperature_2m       = st.number_input("temperature_2m (°C)", value=25.0)
+                temperature_2m       = st.number_input("Temperature (°C)", value=25.0)
                 relative_humidity_2m = st.number_input("relative_humidity_2m (%)", 0.0, 100.0, 50.0)
                 dew_point_2m         = st.number_input("dew_point_2m (°C)", value=15.0)
             with c2:
