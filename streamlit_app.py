@@ -255,50 +255,337 @@ with tab2:
         except Exception as e:
             st.error(f"Batch prediction error: {e}")
 
-# ---------- TAB 3: Panel Evaluation (internal irradiance) ----------
+# # ---------- TAB 3: Panel Evaluation (internal irradiance) ----------
+# with tab3:
+#     st.markdown("### Performance photovoltaïque saisonnière et annuelle")
+#     st.caption("L’application sélectionnera automatiquement l’année avec la meilleure couverture et quatre jours représentatifs des saisons.")
+
+#     # Load internal irradiance
+#     def load_internal_irradiance() -> pd.DataFrame:
+#         if "irr_df" in st.session_state and isinstance(st.session_state["irr_df"], pd.DataFrame):
+#             df = st.session_state["irr_df"].copy()
+#         else:
+#             if not os.path.exists(IRR_PATH):
+#                 st.error(f"Irradiance not found. Put a DataFrame in st.session_state['irr_df'] or add `{IRR_PATH}`.")
+#                 st.stop()
+#             df = pd.read_csv(IRR_PATH)
+
+#         if "Unnamed: 0" in df.columns:
+#             df = df.drop(columns="Unnamed: 0")
+#         if "time" not in df.columns:
+#             st.error("Missing `time` column in irradiance data."); st.stop()
+
+#         df["time"] = pd.to_datetime(df["time"], errors="coerce")
+#         df = df.dropna(subset=["time"]).set_index("time").sort_index()
+#         return df
+
+#     irr = load_internal_irradiance()
+
+#     tilt_candidates = [c for c in irr.columns if "global_tilted_irradiance" in c.lower()]
+#     if not tilt_candidates:
+#         st.error("No column containing 'global_tilted_irradiance' found."); st.stop()
+#     tilt_col = tilt_candidates[0]
+#     horiz_cols = [c for c in irr.columns if ("horizontal" in c.lower() and "irradiance" in c.lower())]
+#     horiz_col = horiz_cols[0] if horiz_cols else None
+
+#     # Aggregate hour + find best year
+#     df_hourly = irr.resample("H").mean(numeric_only=True)
+#     df_hourly["date"] = df_hourly.index.normalize()
+#     df_hourly["year"] = df_hourly.index.year
+#     days_per_year = df_hourly.groupby("year")["date"].nunique().sort_values(ascending=False)
+#     if days_per_year.empty:
+#         st.error("No data after hourly aggregation."); st.stop()
+#     best_year = int(days_per_year.index[0])
+#     year_df = df_hourly[df_hourly.index.year == best_year].copy()
+
+#     # Daily energy proxy
+#     daily_energy = year_df[tilt_col].resample("D").sum(min_count=1).dropna()
+#     daily_energy.index = daily_energy.index.normalize()
+
+#     def in_range(start_mmdd, end_mmdd):
+#         return (daily_energy.index >= pd.Timestamp(f"{best_year}-{start_mmdd}")) & \
+#                (daily_energy.index <= pd.Timestamp(f"{best_year}-{end_mmdd}"))
+
+#     windows = {
+#         "Spring (≈Mar 20)": in_range("03-10", "03-30"),
+#         "Summer (≈Jun 21)": in_range("06-11", "07-01"),
+#         "Autumn (≈Sep 22)": in_range("09-12", "10-02"),
+#         "Winter (≈Dec 21)": in_range("12-11", "12-31"),
+#     }
+#     qmask = {
+#         "Spring (≈Mar 20)": ((daily_energy.index >= f"{best_year}-01-01") & (daily_energy.index <= f"{best_year}-03-31")),
+#         "Summer (≈Jun 21)": ((daily_energy.index >= f"{best_year}-04-01") & (daily_energy.index <= f"{best_year}-06-30")),
+#         "Autumn (≈Sep 22)": ((daily_energy.index >= f"{best_year}-07-01") & (daily_energy.index <= f"{best_year}-09-30")),
+#         "Winter (≈Dec 21)": ((daily_energy.index >= f"{best_year}-10-01") & (daily_energy.index <= f"{best_year}-12-31")),
+#     }
+
+#     selected = {}
+#     for label, wmask in windows.items():
+#         cand = daily_energy[wmask]
+#         if not cand.empty:
+#             selected[label] = cand.idxmax().date()
+#         else:
+#             qcand = daily_energy[qmask[label]]
+#             if not qcand.empty:
+#                 selected[label] = qcand.idxmax().date()
+
+#     # De-duplicate choices
+#     used = set()
+#     for label in list(selected.keys()):
+#         d = selected[label]
+#         if d in used:
+#             wmask = windows[label]
+#             fallback = daily_energy[wmask].drop(pd.Timestamp(d), errors="ignore")
+#             if fallback.empty:
+#                 fallback = daily_energy[qmask[label]].drop(pd.Timestamp(d), errors="ignore")
+#             if not fallback.empty:
+#                 selected[label] = fallback.idxmax().date()
+#         if label in selected:
+#             used.add(selected[label])
+
+#     ordered_labels = ["Spring (≈Mar 20)", "Summer (≈Jun 21)", "Autumn (≈Sep 22)", "Winter (≈Dec 21)"]
+#     season_fr = {
+#         "Spring (≈Mar 20)":  "Équinoxe de printemps",
+#         "Summer (≈Jun 21)":  "Solstice d’été",
+#         "Autumn (≈Sep 22)":  "Équinoxe d’automne",
+#         "Winter (≈Dec 21)":  "Solstice d’hiver",
+#     }
+
+#     selected_dates = [pd.Timestamp(selected[l]) for l in ordered_labels if l in selected]
+#     if len(selected_dates) < 4:
+#         top = daily_energy.sort_values(ascending=False)
+#         uniq = []
+#         for d in top.index:
+#             if d.date() not in uniq:
+#                 uniq.append(d.date())
+#             if len(uniq) == 4: break
+#         selected_dates = [pd.Timestamp(d) for d in sorted(uniq)]
+
+#     # Panels expander
+#     with st.expander("⚙️ Panneaux à comparer (nom, Pmax, dimensions)"):
+#         nb_panels = st.number_input("Nombre de panneaux", 1, 8, 3, 1, key="nb_panels_tab3")
+#         defaults = [
+#             ("TRINA", 620.0, 2.382, 1.134),
+#             ("LONGi", 550.0, 2.278, 1.134),
+#             ("JINKO", 460.0, 2.182, 1.029),
+#         ]
+#         panels = {}
+#         for i in range(int(nb_panels)):
+#             name_d, pmax_d, L_d, W_d = defaults[i] if i < len(defaults) else (f"PANEL{i+1}", 500.0, 1.800, 1.100)
+#             c1, c2, c3, c4 = st.columns([1.2, 0.9, 0.9, 0.9])
+#             with c1: name = st.text_input(f"Panneaux #{i+1} Name", value=name_d, key=f"name_{i}_tab3")
+#             with c2: pmax = st.number_input(f"Pmax #{i+1} (W)", 1.0, value=pmax_d, step=10.0, key=f"pmax_{i}_tab3")
+#             with c3: L    = st.number_input(f"Longueur #{i+1} (m)", 0.3, value=L_d, step=0.001, format="%.3f", key=f"L_{i}_tab3")
+#             with c4: W    = st.number_input(f"Largeur #{i+1} (m)",  0.3, value=W_d, step=0.001, format="%.3f", key=f"W_{i}_tab3")
+#             panels[name.strip() or f"PANEL{i+1}"] = {"Pmax": float(pmax), "dims": (float(L), float(W))}
+
+#         # Deduplicate names (Panel, Panel_1…)
+#         dedup, seen = {}, set()
+#         for i, (nm, spec) in enumerate(panels.items(), start=1):
+#             base = nm or f"PANEL{i}"
+#             n = base; k = 1
+#             while n in seen:
+#                 n = f"{base}_{k}"; k += 1
+#             dedup[n] = spec; seen.add(n)
+#         panels = dedup
+
+#     # Build seasonal blocks
+#     blocks, labels_for_blocks = [], []
+#     for lab, d in zip(ordered_labels, selected_dates):
+#         day_block = year_df[year_df.index.normalize() == d]
+#         if not day_block.empty:
+#             blocks.append(day_block); labels_for_blocks.append(season_fr[lab])
+
+#     if len(blocks) < 2:
+#         st.error("Not enough distinct days to draw seasonal figure."); st.stop()
+
+#     df_sel = pd.concat(blocks, axis=0)
+#     df_sel["time_series_h"] = np.arange(1, len(df_sel) + 1)
+
+#     boundary_idx, cum = [], 0
+#     for blk in blocks[:-1]:
+#         cum += len(blk)
+#         boundary_idx.append(cum)
+
+#     # Power density for each panel
+#     for name, p in panels.items():
+#         area = p["dims"][0] * p["dims"][1]
+#         eta  = p["Pmax"] / (1000.0 * area)
+#         df_sel[name] = eta * df_sel[tilt_col]
+
+#     # Plot seasonal figure
+#     fig = plt.figure(figsize=(11, 8))
+#     ax1 = fig.add_subplot(2, 1, 1)
+#     if horiz_col is not None:
+#         ax1.plot(df_sel["time_series_h"], df_sel[horiz_col], linewidth=2, label="Global Horizontal Irradiance")
+#     ax1.plot(df_sel["time_series_h"], df_sel[tilt_col], linewidth=2, label="Irradiance on Tilted Panels")
+#     for x in boundary_idx: ax1.axvline(x)
+#     start = 0
+#     for i, blk in enumerate(blocks):
+#         end = start + len(blk); center = (start + end) / 2
+#         ax1.text(center, ax1.get_ylim()[1] * 0.95, labels_for_blocks[i],
+#                  ha="center", va="top", fontsize=10, fontweight="bold")
+#         start = end
+#     ax1.legend(loc='lower center', bbox_to_anchor=(0.5, 1.18),
+#                ncol=2 if horiz_col is not None else 1, frameon=True)
+#     ax1.set_ylabel("Rayonnement solaire (W/m²)")
+#     ax1.set_xticks([])
+
+#     ax2 = fig.add_subplot(2, 1, 2)
+#     for idx, (name, _) in enumerate(panels.items()):
+#         linestyle = "--" if idx % 2 else "-"
+#         ax2.plot(df_sel["time_series_h"], df_sel[name], linewidth=2, linestyle=linestyle, label=name)
+#     for x in boundary_idx: ax2.axvline(x)
+#     ax2.set_ylabel("Puissance de sortie (W/m²)")
+#     ax2.set_xlabel("Série temporelle (h)")
+#     ax2.legend(loc="upper left", frameon=True)
+
+#     plt.tight_layout()
+#     st.pyplot(fig, clear_figure=True)
+
+#     st.info(f"Année utilisée: **{best_year}** · Jour selectionnés: " + ", ".join([d.strftime('%Y-%m-%d') for d in selected_dates]))
+
+#     # Annual energy
+#     annual_density_kWh_m2, annual_module_kWh = {}, {}
+#     for name, p in panels.items():
+#         area = p["dims"][0] * p["dims"][1]
+#         eta  = p["Pmax"] / (1000.0 * area)
+#         power_density = eta * year_df[tilt_col]
+#         energy_density_kWh_m2 = power_density.sum() / 1000.0
+#         annual_density_kWh_m2[name] = energy_density_kWh_m2
+#         annual_module_kWh[name] = energy_density_kWh_m2 * area
+
+#     labels = list(panels.keys())
+#     vals_module  = [annual_module_kWh[k] for k in labels]
+#     vals_density = [annual_density_kWh_m2[k] for k in labels]
+
+#     fig4 = plt.figure(figsize=(10, 8))
+#     ax4a = fig4.add_subplot(2, 1, 1)
+#     bars1 = ax4a.bar(labels, vals_module)
+#     ax4a.set_ylabel("Énergie Annuel (kWh/an)")
+#     ax4a.set_title("(a)  Module Unique")
+#     for b, v in zip(bars1, vals_module):
+#         ax4a.text(b.get_x() + b.get_width()/2, b.get_height()*1.01, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
+
+#     ax4b = fig4.add_subplot(2, 1, 2)
+#     bars2 = ax4b.bar(labels, vals_density)
+#     ax4b.set_ylabel("Énergie Annuel (kWh/m²·an)")
+#     ax4b.set_title("(b) Par unité de surface")
+#     ax4b.set_xlabel("Panel")
+#     for b, v in zip(bars2, vals_density):
+#         ax4b.text(b.get_x() + b.get_width()/2, b.get_height()*1.01, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
+
+#     plt.tight_layout()
+#     st.pyplot(fig4, clear_figure=True)
+
+#     st.markdown("#### Résumé annuel")
+#     st.dataframe(
+#         pd.DataFrame({
+#             "Panel": labels,
+#             "Énergie du module (kWh/an)": [round(x, 1) for x in vals_module],
+#             "Énergie surfacique (kWh/m²·an)": [round(x, 1) for x in vals_density],
+#         }),
+#         use_container_width=True
+#     )
+
+# ---------- TAB 3: Panel Evaluation (irradiance interne OU CSV utilisateur) ----------
 with tab3:
     st.markdown("### Performance photovoltaïque saisonnière et annuelle")
-    st.caption("L’application sélectionnera automatiquement l’année avec la meilleure couverture et quatre jours représentatifs des saisons.")
+    st.caption("Choisissez la source d’irradiance et l’application sélectionnera automatiquement l’année avec la meilleure couverture ainsi que quatre jours représentatifs des saisons.")
 
-    # Load internal irradiance
-    def load_internal_irradiance() -> pd.DataFrame:
+    # === Choix de la source d'irradiance ===
+    src_choice = st.radio(
+        "Source de données",
+        ["Irradiance interne", "Téléverser un CSV"],
+        horizontal=True,
+        index=0,
+        key="irr_src_choice",
+    )
+
+    # ---------- Chargement / Préparation des données ----------
+    def _clean_time_index(df: pd.DataFrame, time_col: str = "time") -> pd.DataFrame:
+        if time_col not in df.columns:
+            st.error(f"La colonne temporelle `{time_col}` est introuvable."); st.stop()
+        df = df.copy()
+        df[time_col] = pd.to_datetime(df[time_col], errors="coerce")
+        df = df.dropna(subset=[time_col]).set_index(time_col).sort_index()
+        return df
+
+    def _load_internal_irradiance() -> pd.DataFrame:
         if "irr_df" in st.session_state and isinstance(st.session_state["irr_df"], pd.DataFrame):
             df = st.session_state["irr_df"].copy()
         else:
             if not os.path.exists(IRR_PATH):
-                st.error(f"Irradiance not found. Put a DataFrame in st.session_state['irr_df'] or add `{IRR_PATH}`.")
+                st.error(f"Irradiance introuvable. Déposez un DataFrame dans st.session_state['irr_df'] ou ajoutez le fichier `{IRR_PATH}`.")
                 st.stop()
             df = pd.read_csv(IRR_PATH)
-
         if "Unnamed: 0" in df.columns:
             df = df.drop(columns="Unnamed: 0")
-        if "time" not in df.columns:
-            st.error("Missing `time` column in irradiance data."); st.stop()
+        return _clean_time_index(df, time_col="time")
 
-        df["time"] = pd.to_datetime(df["time"], errors="coerce")
-        df = df.dropna(subset=["time"]).set_index("time").sort_index()
-        return df
+    irr = None
+    tilt_col = None
+    horiz_col = None
 
-    irr = load_internal_irradiance()
+    if src_choice == "Irradiance interne":
+        irr = _load_internal_irradiance()
 
-    tilt_candidates = [c for c in irr.columns if "global_tilted_irradiance" in c.lower()]
-    if not tilt_candidates:
-        st.error("No column containing 'global_tilted_irradiance' found."); st.stop()
-    tilt_col = tilt_candidates[0]
-    horiz_cols = [c for c in irr.columns if ("horizontal" in c.lower() and "irradiance" in c.lower())]
-    horiz_col = horiz_cols[0] if horiz_cols else None
+        # Détection automatique des colonnes
+        tilt_candidates  = [c for c in irr.columns if "global_tilted_irradiance" in c.lower()]
+        horiz_candidates = [c for c in irr.columns if ("horizontal" in c.lower() and "irradiance" in c.lower())]
 
-    # Aggregate hour + find best year
+        if not tilt_candidates:
+            st.error("Aucune colonne ne contient 'global_tilted_irradiance'."); st.stop()
+        tilt_col  = tilt_candidates[0]
+        horiz_col = horiz_candidates[0] if horiz_candidates else None
+
+    else:  # "Téléverser un CSV"
+        up = st.file_uploader("Téléversez votre fichier CSV d’irradiance", type=["csv"], key="user_irr_csv")
+        if up is None:
+            st.info("En attente d’un fichier CSV…")
+            st.stop()
+        try:
+            df_up = pd.read_csv(up)
+        except Exception as e:
+            st.error(f"Erreur de lecture du CSV : {e}")
+            st.stop()
+
+        # Sélection de la colonne temps si le nom diffère
+        time_guess = "time" if "time" in df_up.columns else None
+        time_col_sel = st.selectbox("Colonne temporelle", options=list(df_up.columns), index=(list(df_up.columns).index(time_guess) if time_guess in df_up.columns else 0))
+        irr = _clean_time_index(df_up, time_col=time_col_sel)
+
+        # Proposer le choix de la colonne inclinée et (optionnel) horizontale
+        numeric_cols = [c for c in irr.columns if pd.api.types.is_numeric_dtype(irr[c])]
+        # Tentatives auto
+        auto_tilt  = next((c for c in numeric_cols if "tilt" in c.lower() and "irr" in c.lower()), None) \
+                     or next((c for c in numeric_cols if "global_tilted_irradiance" in c.lower()), None)
+        auto_horiz = next((c for c in numeric_cols if "horiz" in c.lower() and "irr" in c.lower()), None)
+
+        tilt_col = st.selectbox(
+            "Colonne d’irradiance sur plan incliné (obligatoire)",
+            options=numeric_cols,
+            index=(numeric_cols.index(auto_tilt) if auto_tilt in numeric_cols else 0)
+        )
+        horiz_col = st.selectbox(
+            "Colonne d’irradiance horizontale (optionnel)",
+            options=["(aucune)"] + numeric_cols,
+            index=( (numeric_cols.index(auto_horiz) + 1) if auto_horiz in numeric_cols else 0)
+        )
+        if horiz_col == "(aucune)":
+            horiz_col = None
+
+    # ---------- Agrégation horaire & meilleure année ----------
     df_hourly = irr.resample("H").mean(numeric_only=True)
     df_hourly["date"] = df_hourly.index.normalize()
     df_hourly["year"] = df_hourly.index.year
     days_per_year = df_hourly.groupby("year")["date"].nunique().sort_values(ascending=False)
     if days_per_year.empty:
-        st.error("No data after hourly aggregation."); st.stop()
+        st.error("Pas de données après agrégation horaire."); st.stop()
     best_year = int(days_per_year.index[0])
     year_df = df_hourly[df_hourly.index.year == best_year].copy()
 
-    # Daily energy proxy
+    # ---------- Sélection de jours représentatifs ----------
     daily_energy = year_df[tilt_col].resample("D").sum(min_count=1).dropna()
     daily_energy.index = daily_energy.index.normalize()
 
@@ -329,7 +616,7 @@ with tab3:
             if not qcand.empty:
                 selected[label] = qcand.idxmax().date()
 
-    # De-duplicate choices
+    # Dé-duplication
     used = set()
     for label in list(selected.keys()):
         d = selected[label]
@@ -361,7 +648,7 @@ with tab3:
             if len(uniq) == 4: break
         selected_dates = [pd.Timestamp(d) for d in sorted(uniq)]
 
-    # Panels expander
+    # ---------- Paramètres panneaux ----------
     with st.expander("⚙️ Panneaux à comparer (nom, Pmax, dimensions)"):
         nb_panels = st.number_input("Nombre de panneaux", 1, 8, 3, 1, key="nb_panels_tab3")
         defaults = [
@@ -373,13 +660,13 @@ with tab3:
         for i in range(int(nb_panels)):
             name_d, pmax_d, L_d, W_d = defaults[i] if i < len(defaults) else (f"PANEL{i+1}", 500.0, 1.800, 1.100)
             c1, c2, c3, c4 = st.columns([1.2, 0.9, 0.9, 0.9])
-            with c1: name = st.text_input(f"Panneaux #{i+1} Name", value=name_d, key=f"name_{i}_tab3")
+            with c1: name = st.text_input(f"Nom du panneau #{i+1}", value=name_d, key=f"name_{i}_tab3")
             with c2: pmax = st.number_input(f"Pmax #{i+1} (W)", 1.0, value=pmax_d, step=10.0, key=f"pmax_{i}_tab3")
             with c3: L    = st.number_input(f"Longueur #{i+1} (m)", 0.3, value=L_d, step=0.001, format="%.3f", key=f"L_{i}_tab3")
             with c4: W    = st.number_input(f"Largeur #{i+1} (m)",  0.3, value=W_d, step=0.001, format="%.3f", key=f"W_{i}_tab3")
             panels[name.strip() or f"PANEL{i+1}"] = {"Pmax": float(pmax), "dims": (float(L), float(W))}
 
-        # Deduplicate names (Panel, Panel_1…)
+        # Déduplication des noms
         dedup, seen = {}, set()
         for i, (nm, spec) in enumerate(panels.items(), start=1):
             base = nm or f"PANEL{i}"
@@ -389,7 +676,7 @@ with tab3:
             dedup[n] = spec; seen.add(n)
         panels = dedup
 
-    # Build seasonal blocks
+    # ---------- Construction des blocs saisonniers ----------
     blocks, labels_for_blocks = [], []
     for lab, d in zip(ordered_labels, selected_dates):
         day_block = year_df[year_df.index.normalize() == d]
@@ -397,7 +684,7 @@ with tab3:
             blocks.append(day_block); labels_for_blocks.append(season_fr[lab])
 
     if len(blocks) < 2:
-        st.error("Not enough distinct days to draw seasonal figure."); st.stop()
+        st.error("Pas assez de jours distincts pour tracer la figure saisonnière."); st.stop()
 
     df_sel = pd.concat(blocks, axis=0)
     df_sel["time_series_h"] = np.arange(1, len(df_sel) + 1)
@@ -407,18 +694,18 @@ with tab3:
         cum += len(blk)
         boundary_idx.append(cum)
 
-    # Power density for each panel
+    # ---------- Densité de puissance par panneau ----------
     for name, p in panels.items():
         area = p["dims"][0] * p["dims"][1]
         eta  = p["Pmax"] / (1000.0 * area)
         df_sel[name] = eta * df_sel[tilt_col]
 
-    # Plot seasonal figure
+    # ---------- Graphique saisonnier ----------
     fig = plt.figure(figsize=(11, 8))
     ax1 = fig.add_subplot(2, 1, 1)
     if horiz_col is not None:
-        ax1.plot(df_sel["time_series_h"], df_sel[horiz_col], linewidth=2, label="Global Horizontal Irradiance")
-    ax1.plot(df_sel["time_series_h"], df_sel[tilt_col], linewidth=2, label="Irradiance on Tilted Panels")
+        ax1.plot(df_sel["time_series_h"], df_sel[horiz_col], linewidth=2, label="Irradiance horizontale globale")
+    ax1.plot(df_sel["time_series_h"], df_sel[tilt_col], linewidth=2, label="Irradiance sur panneaux inclinés")
     for x in boundary_idx: ax1.axvline(x)
     start = 0
     for i, blk in enumerate(blocks):
@@ -443,9 +730,9 @@ with tab3:
     plt.tight_layout()
     st.pyplot(fig, clear_figure=True)
 
-    st.info(f"Année utilisée: **{best_year}** · Jour selectionnés: " + ", ".join([d.strftime('%Y-%m-%d') for d in selected_dates]))
+    st.info(f"Année utilisée : **{best_year}** · Jours sélectionnés : " + ", ".join([d.strftime('%Y-%m-%d') for d in selected_dates]))
 
-    # Annual energy
+    # ---------- Énergie annuelle ----------
     annual_density_kWh_m2, annual_module_kWh = {}, {}
     for name, p in panels.items():
         area = p["dims"][0] * p["dims"][1]
@@ -462,16 +749,16 @@ with tab3:
     fig4 = plt.figure(figsize=(10, 8))
     ax4a = fig4.add_subplot(2, 1, 1)
     bars1 = ax4a.bar(labels, vals_module)
-    ax4a.set_ylabel("Énergie Annuel (kWh/an)")
-    ax4a.set_title("(a)  Module Unique")
+    ax4a.set_ylabel("Énergie annuelle (kWh/an)")
+    ax4a.set_title("(a) Module unique")
     for b, v in zip(bars1, vals_module):
         ax4a.text(b.get_x() + b.get_width()/2, b.get_height()*1.01, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
 
     ax4b = fig4.add_subplot(2, 1, 2)
     bars2 = ax4b.bar(labels, vals_density)
-    ax4b.set_ylabel("Énergie Annuel (kWh/m²·an)")
+    ax4b.set_ylabel("Énergie annuelle (kWh/m²·an)")
     ax4b.set_title("(b) Par unité de surface")
-    ax4b.set_xlabel("Panel")
+    ax4b.set_xlabel("Panneau")
     for b, v in zip(bars2, vals_density):
         ax4b.text(b.get_x() + b.get_width()/2, b.get_height()*1.01, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
 
@@ -481,14 +768,15 @@ with tab3:
     st.markdown("#### Résumé annuel")
     st.dataframe(
         pd.DataFrame({
-            "Panel": labels,
+            "Panneau": labels,
             "Énergie du module (kWh/an)": [round(x, 1) for x in vals_module],
             "Énergie surfacique (kWh/m²·an)": [round(x, 1) for x in vals_density],
         }),
         use_container_width=True
     )
 
-# ---------- TAB 4: Team ----------
+ # ---------- TAB 4: Team ----------
+
 with tab4:
     st.markdown("### Rencontrez l’équipe")
     st.caption("Cliquez sur une carte pour ouvrir le profil LinkedIn.")
