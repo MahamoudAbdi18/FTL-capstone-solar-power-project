@@ -41,7 +41,7 @@ IRR_PATH   = "Energy_solar.csv"
 
 # ========= PAGE CONFIG =========
 st.set_page_config(
-    page_title="Solar Power Dashboard",
+    page_title="Tableau de bord de l’énergie solaire",
     page_icon="☀️",
     layout="wide"
 )
@@ -142,30 +142,30 @@ model = load_model(MODEL_PATH, os.path.getmtime(MODEL_PATH))
 left, right = st.columns([1, 1], vertical_alignment="center")
 with left:
     st.title("☀️ Solar Power Dashboard")
-    st.write("Predictions from weather + time features, batch CSV support, and a seasonal PV evaluation from internal irradiance data.")
+    st.write("Prédictions à partir des données météo + variables temporelles, prise en charge des fichiers CSV en lot, et évaluation saisonnière du photovoltaïque basée sur les données d’irradiance.")
 with right:
     with st.container(border=True):
         c1, c2, c3 = st.columns(3)
-        c1.metric("Model File", "Loaded")
-        c2.metric("Features", f"{len(BASE_COLS)} weather")
-        c3.metric("Time Inputs", "Hour/Day/Month")
+        c1.metric("Fichier du modèle", "Chargé")
+        c2.metric("Variables", f"{len(BASE_COLS)} weather")
+        c3.metric("Entrées temporelles", "Heure/Jour/Mois")
 
 st.divider()
 
 # ========= TABS =========
-tab1, tab2, tab3, tab4 = st.tabs(["🖊️ Manual", "📂 Batch CSV", "🔆 Panel Evaluation", "👥 Team"])
+tab1, tab2, tab3, tab4 = st.tabs(["🖊️ Manuel", "📂 CSV en lot", "🔆 Évaluation des panneaux", "👥 Equipe"])
 
 # ---------- TAB 1: Manual ----------
 with tab1:
     st.markdown("### Quick single prediction")
-    st.caption("Provide a single timestamp **or** Hour/Day/Month plus the weather variables below.")
+    st.caption("Fournissez un horodatage unique OU Heure/Jour/Mois ainsi que les variables météo ci-dessous.")
     st.code(", ".join(BASE_COLS), language="text")
 
-    time_mode = st.radio("Time input mode", ["Single `time` column", "Separate Hour / Day / Month"], horizontal=True, key="time_mode_manual")
+    time_mode = st.radio("Mode de saisie du temps", ["Colonne `time` unique", "Séparer Heure / Jour / Mois"], horizontal=True, key="time_mode_manual")
 
     with st.container():
         with st.form("manual_input_form", clear_on_submit=False, border=False):
-            st.markdown('<div class="section-title">Time</div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Temps</div>', unsafe_allow_html=True)
             if time_mode == "Single `time` column":
                 dcol1, dcol2 = st.columns(2)
                 with dcol1:
@@ -181,7 +181,7 @@ with tab1:
                 with col_m: month = st.number_input("Month", 1, 12, 6, 1)
                 dt = None
 
-            st.markdown('<div class="section-title">Weather</div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Météo</div>', unsafe_allow_html=True)
             c1, c2 = st.columns(2)
             with c1:
                 temperature_2m       = st.number_input("Temperature (°C)", value=25.0)
@@ -192,7 +192,7 @@ with tab1:
                 wind_direction_10m   = st.number_input("wind_direction_10m (°)", 0.0, 360.0, 180.0)
                 cloud_cover          = st.number_input("cloud_cover (%)", 0.0, 100.0, 20.0)
 
-            submitted = st.form_submit_button("Predict")
+            submitted = st.form_submit_button("Prédire")
 
         if submitted:
             row = {}
@@ -215,21 +215,21 @@ with tab1:
             try:
                 y = model.predict(X)
                 pred = float(y[0])
-                st.success("Prediction complete")
-                st.metric("Prediction (W/m²)", f"{pred:,.2f}")
+                st.success("Prédiction terminée")
+                st.metric("Prédiction (W/m²)", f"{pred:,.2f}")
                 out = X.copy(); out["prediction_W_m2"] = pred
-                st.download_button("⬇️ Download CSV", out.to_csv(index=False).encode("utf-8"),
+                st.download_button("⬇️ Télécharger CSV", out.to_csv(index=False).encode("utf-8"),
                                    "prediction_single.csv", "text/csv")
             except Exception as e:
                 st.error(f"Prediction error: {e}")
 
 # ---------- TAB 2: Batch ----------
 with tab2:
-    st.markdown("### Batch predictions from CSV")
-    st.caption("Your CSV should contain either a `time` column **or** the three columns `Hour`, `Day`, `Month`, plus:")
+    st.markdown("### Prédictions en lot à partir d’un CSV")
+    st.caption("Votre CSV doit contenir soit une colonne time, soit les trois colonnes Hour, Day, Month, ainsi:")
     st.code(", ".join(BASE_COLS), language="text")
 
-    file = st.file_uploader("Choose a CSV", type=["csv"], key="batch_csv")
+    file = st.file_uploader("Choisir un CSV ", type=["csv"], key="batch_csv")
     if file is not None:
         try:
             df = pd.read_csv(file)
@@ -241,14 +241,14 @@ with tab2:
                     df[col] = 0.0
 
             X = df[ALL_FEATURES_WITH_TIME]
-            with st.spinner("Scoring…"):
+            with st.spinner("Calcul en cours…"):
                 preds = model.predict(X)
             out = df.copy()
             out["prediction_W_m2"] = preds
 
             st.success(f"Predicted {len(out)} rows")
             st.dataframe(out.head(100), use_container_width=True)
-            st.download_button("⬇️ Download predictions.csv",
+            st.download_button("⬇️ Télécharger predictions.csv",
                                out.to_csv(index=False).encode("utf-8"),
                                "predictions.csv",
                                "text/csv")
