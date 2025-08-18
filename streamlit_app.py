@@ -171,7 +171,7 @@ with tab1:
                 with dcol1:
                     date_val = st.date_input("Date", value=datetime.now().date())
                 with dcol2:
-                    time_val = st.time_input("Hour", value=datetime.now().time().replace(minute=0, second=0, microsecond=0))
+                    time_val = st.time_input("Heure", value=datetime.now().time().replace(minute=0, second=0, microsecond=0))
                 dt = pd.to_datetime(f"{date_val} {time_val}")
                 hour = day = month = None
             else:
