@@ -243,7 +243,7 @@ with tab2:
                 for c in ["Hour", "Day", "Month"]:
                     if c not in df.columns:
                         df[c] = 0
-             for col in ALL_FEATURES_WITH_TIME:
+            for col in ALL_FEATURES_WITH_TIME:
                 if col not in df.columns:
                     df[col] = 0.0           
             for c in TIME_FEATURES:
