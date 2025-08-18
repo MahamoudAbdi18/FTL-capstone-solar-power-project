@@ -233,6 +233,19 @@ with tab2:
     if file is not None:
         try:
             df = pd.read_csv(file)
+            # Si la colonne time existe, extraire Hour, Day, Month
+            if "time" in df.columns:
+                df["time"] = pd.to_datetime(df["time"])
+                df["Hour"] = df["time"].dt.hour
+                df["Day"] = df["time"].dt.day
+                df["Month"] = df["time"].dt.month
+            else:
+                for c in ["Hour", "Day", "Month"]:
+                    if c not in df.columns:
+                        df[c] = 0
+             for col in ALL_FEATURES_WITH_TIME:
+                if col not in df.columns:
+                    df[col] = 0.0           
             for c in TIME_FEATURES:
                 if c not in df.columns:
                     df[c] = 0
