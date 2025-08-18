@@ -171,14 +171,14 @@ with tab1:
                 with dcol1:
                     date_val = st.date_input("Date", value=datetime.now().date())
                 with dcol2:
-                    time_val = st.time_input("Hour", value=datetime.now().time().replace(minute=0, second=0, microsecond=0))
+                    time_val = st.time_input("Heure", value=datetime.now().time().replace(minute=0, second=0, microsecond=0))
                 dt = pd.to_datetime(f"{date_val} {time_val}")
                 hour = day = month = None
             else:
                 col_h, col_d, col_m = st.columns(3)
-                with col_h: hour  = st.number_input("Hour",  0, 23, 12, 1)
-                with col_d: day   = st.number_input("Day",   1, 31, 15, 1)
-                with col_m: month = st.number_input("Month", 1, 12, 6, 1)
+                with col_h: hour  = st.number_input("Heure",  0, 23, 12, 1)
+                with col_d: day   = st.number_input("Jour",   1, 31, 15, 1)
+                with col_m: month = st.number_input("Mois", 1, 12, 6, 1)
                 dt = None
 
             st.markdown('<div class="section-title">Météo</div>', unsafe_allow_html=True)
