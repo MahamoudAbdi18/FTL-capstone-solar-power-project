@@ -185,12 +185,12 @@ with tab1:
             c1, c2 = st.columns(2)
             with c1:
                 temperature_2m       = st.number_input("Temperature (°C)", value=25.0)
-                relative_humidity_2m = st.number_input("relative_humidity_2m (%)", 0.0, 100.0, 50.0)
-                dew_point_2m         = st.number_input("dew_point_2m (°C)", value=15.0)
+                relative_humidity_2m = st.number_input(" Humidité Relative (%)", 0.0, 100.0, 50.0)
+                dew_point_2m         = st.number_input(" Point de Rosée (°C)", value=15.0)
             with c2:
-                wind_speed_10m       = st.number_input("wind_speed_10m (km/h)", min_value=0.0, value=10.0)
-                wind_direction_10m   = st.number_input("wind_direction_10m (°)", 0.0, 360.0, 180.0)
-                cloud_cover          = st.number_input("cloud_cover (%)", 0.0, 100.0, 20.0)
+                wind_speed_10m       = st.number_input("Vitesse du Vent (km/h)", min_value=0.0, value=10.0)
+                wind_direction_10m   = st.number_input("Direction du Vent (°)", 0.0, 360.0, 180.0)
+                cloud_cover          = st.number_input(" Couverture Nuagueuse (%)", 0.0, 100.0, 20.0)
 
             submitted = st.form_submit_button("Prédire")
 
