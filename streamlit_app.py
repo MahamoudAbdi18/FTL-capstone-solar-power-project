@@ -126,38 +126,38 @@ setattr(sys.modules["__main__"], "TimeFeatures", TimeFeatures)
 #         urllib.request.urlretrieve(url, MODEL_PATH)
 #         st.success("Model downloaded.")
 
-def _maybe_download_model():
-    url = os.environ.get("MODEL_URL", "").strip()
-    if url and not os.path.exists(MODEL_PATH):
-        import requests, time
-        st.info(f"Downloading model from {url} …")
-        for attempt in range(3):
-            try:
-                with requests.get(url, stream=True, timeout=60) as r:
-                    r.raise_for_status()
-                    with open(MODEL_PATH, "wb") as f:
-                        for chunk in r.iter_content(1024 * 1024):
-                            if chunk:
-                                f.write(chunk)
-                st.success("Model downloaded.")
-                break
-            except Exception as e:
-                if attempt == 2:
-                    st.error(f"Download failed: {e}")
-                    st.stop()
-                time.sleep(2)
+# def _maybe_download_model():
+#     url = os.environ.get("MODEL_URL", "").strip()
+#     if url and not os.path.exists(MODEL_PATH):
+#         import requests, time
+#         st.info(f"Downloading model from {url} …")
+#         for attempt in range(3):
+#             try:
+#                 with requests.get(url, stream=True, timeout=60) as r:
+#                     r.raise_for_status()
+#                     with open(MODEL_PATH, "wb") as f:
+#                         for chunk in r.iter_content(1024 * 1024):
+#                             if chunk:
+#                                 f.write(chunk)
+#                 st.success("Model downloaded.")
+#                 break
+#             except Exception as e:
+#                 if attempt == 2:
+#                     st.error(f"Download failed: {e}")
+#                     st.stop()
+#                 time.sleep(2)
 
-@st.cache_resource
-def load_model(path: str, mtime: float):
-    return joblib.load(path)
+# @st.cache_resource
+# def load_model(path: str, mtime: float):
+#     return joblib.load(path)
 
-if not os.path.exists(MODEL_PATH):
-    _maybe_download_model()
-if not os.path.exists(MODEL_PATH):
-    st.error("Model file not found. Add `model_stacking_pipeline.pkl` or set MODEL_URL.")
-    st.stop()
+# if not os.path.exists(MODEL_PATH):
+#     _maybe_download_model()
+# if not os.path.exists(MODEL_PATH):
+#     st.error("Model file not found. Add `model_stacking_pipeline.pkl` or set MODEL_URL.")
+#     st.stop()
 
-model = load_model(MODEL_PATH, os.path.getmtime(MODEL_PATH))
+# model = load_model(MODEL_PATH, os.path.getmtime(MODEL_PATH))
 
 # import os, hashlib, requests, pickle
 # from pathlib import Path
@@ -194,6 +194,77 @@ model = load_model(MODEL_PATH, os.path.getmtime(MODEL_PATH))
 #         return pickle.load(f)
 
 # model = load_model()
+
+import os, time, hashlib, requests, joblib
+from pathlib import Path
+import streamlit as st
+
+# ------------- CONFIG -------------
+# Where to store the downloaded model (create a folder so the repo stays clean)
+ARTIFACTS_DIR = Path("artifacts")
+ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
+MODEL_PATH = ARTIFACTS_DIR / "model_stacking_pipeline.pkl"
+
+# Try Streamlit secrets first, then environment variable
+def get_model_url() -> str:
+    url = ""
+    try:
+        url = st.secrets.get("MODEL_URL", "")
+    except Exception:
+        pass
+    if not url:
+        url = os.environ.get("MODEL_URL", "")
+    return url.strip()
+
+# ------------- DOWNLOAD -------------
+def _maybe_download_model():
+    url = get_model_url()
+    if not url:
+        st.error("MODEL_URL not set in Secrets or environment.")
+        st.stop()
+
+    if MODEL_PATH.exists():
+        return
+
+    st.info(f"Downloading model from {url} …")
+    headers = {"User-Agent": "streamlit-app/1.0 (+https://streamlit.io)"}
+    for attempt in range(3):
+        try:
+            with requests.get(url, stream=True, timeout=120, headers=headers, allow_redirects=True) as r:
+                r.raise_for_status()
+                total = int(r.headers.get("Content-Length", "0") or 0)
+                downloaded = 0
+                with open(MODEL_PATH, "wb") as f:
+                    for chunk in r.iter_content(1024 * 1024):
+                        if not chunk:
+                            continue
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                # simple sanity check
+                if total and downloaded < total * 0.9:
+                    raise RuntimeError(f"Incomplete download ({downloaded}/{total} bytes)")
+            st.success("Model downloaded.")
+            return
+        except Exception as e:
+            if attempt == 2:
+                st.error(f"Download failed: {e}")
+                st.stop()
+            time.sleep(2)
+
+# ------------- LOAD -------------
+@st.cache_resource
+def load_model(path: str, mtime: float):
+    return joblib.load(path)
+
+# ------------- BOOTSTRAP -------------
+if not MODEL_PATH.exists():
+    _maybe_download_model()
+if not MODEL_PATH.exists():
+    st.error("Model file not found. Add it to the repo or set MODEL_URL.")
+    st.stop()
+
+model = load_model(str(MODEL_PATH), MODEL_PATH.stat().st_mtime)
+
 
 # ========= HERO =========
 left, right = st.columns([1, 1], vertical_alignment="center")
