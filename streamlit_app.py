@@ -118,25 +118,61 @@ if "__main__" not in sys.modules:
 setattr(sys.modules["__main__"], "TimeFeatures", TimeFeatures)
 
 # ========= MODEL =========
-def _maybe_download_model():
-    url = os.environ.get("MODEL_URL", "").strip()
-    if url and not os.path.exists(MODEL_PATH):
-        import urllib.request
-        st.info("Downloading model…")
-        urllib.request.urlretrieve(url, MODEL_PATH)
-        st.success("Model downloaded.")
+# def _maybe_download_model():
+#     url = os.environ.get("MODEL_URL", "").strip()
+#     if url and not os.path.exists(MODEL_PATH):
+#         import urllib.request
+#         st.info("Downloading model…")
+#         urllib.request.urlretrieve(url, MODEL_PATH)
+#         st.success("Model downloaded.")
+
+# @st.cache_resource
+# def load_model(path: str, mtime: float):
+#     return joblib.load(path)
+
+# if not os.path.exists(MODEL_PATH):
+#     _maybe_download_model()
+# if not os.path.exists(MODEL_PATH):
+#     st.error("Model file not found. Add `model_stacking_pipeline.pkl` or set MODEL_URL.")
+#     st.stop()
+
+# model = load_model(MODEL_PATH, os.path.getmtime(MODEL_PATH))
+
+import os, hashlib, requests, pickle
+from pathlib import Path
+import streamlit as st
+
+MODEL_URL = "https://github.com/MahamoudAbdi18/FTL-capstone-solar-power project/releases/download/v1.0/model_stacking_pipeline.pk"
+MODEL_SHA256 = "<colle-ici-la-valeur-si-tu-l’as-calculée>"
+
+def download_file(url: str, dest: Path, sha256: str | None = None):
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    if dest.exists():
+        if sha256:
+            got = hashlib.sha256(dest.read_bytes()).hexdigest()
+            if got != sha256:
+                dest.unlink()
+            else:
+                return dest
+        else:
+            return dest
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()
+        with open(dest, "wb") as f:
+            for chunk in r.iter_content(1024*1024):
+                if chunk:
+                    f.write(chunk)
+    if sha256:
+        assert hashlib.sha256(dest.read_bytes()).hexdigest()==sha256, "Hash mismatch"
+    return dest
 
 @st.cache_resource
-def load_model(path: str, mtime: float):
-    return joblib.load(path)
+def load_model():
+    path = download_file(MODEL_URL, Path("artifacts/model_stacking_pipeline.pkl"), MODEL_SHA256)
+    with open(path, "rb") as f:
+        return pickle.load(f)
 
-if not os.path.exists(MODEL_PATH):
-    _maybe_download_model()
-if not os.path.exists(MODEL_PATH):
-    st.error("Model file not found. Add `model_stacking_pipeline.pkl` or set MODEL_URL.")
-    st.stop()
-
-model = load_model(MODEL_PATH, os.path.getmtime(MODEL_PATH))
+model = load_model()
 
 # ========= HERO =========
 left, right = st.columns([1, 1], vertical_alignment="center")
