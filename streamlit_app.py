@@ -142,7 +142,7 @@ model = load_model(MODEL_PATH, os.path.getmtime(MODEL_PATH))
 left, right = st.columns([1, 1], vertical_alignment="center")
 with left:
     st.title("☀️ Tableau de bord de l’énergie solaire")
-    st.write("Prédictions à partir des données météo + variables temporelles, prise en charge des fichiers CSV en lot, et évaluation saisonnière du photovoltaïque basée sur les données d’irradiance.")
+    st.write("Prédictions à partir des données météo + variables temporelles, prise en charge des fichiers CSV en lot, et évaluation saisonnière du photovoltaïque PV basée sur les données d’irradiance.")
 with right:
     with st.container(border=True):
         c1, c2, c3 = st.columns(3)
