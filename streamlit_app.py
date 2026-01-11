@@ -1,4 +1,25 @@
 
+
+
+import streamlit as st
+import os, sys, types, base64, mimetypes
+import joblib
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from datetime import datetime
+
+# ========= PATHS =========
+#MODEL_PATH = "model_stacking_pipeline.pkl"
+IRR_PATH   = "Energy_solar.csv"
+
+# ========= PAGE CONFIG =========
+st.set_page_config(
+    page_title="Tableau de bord de l’énergie solaire",
+    page_icon="☀️",
+    layout="wide"
+)
+
 def inject_css():
     st.markdown("""
     <style>
@@ -154,25 +175,6 @@ def inject_css():
     """, unsafe_allow_html=True)
 
 
-
-import streamlit as st
-import os, sys, types, base64, mimetypes
-import joblib
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from datetime import datetime
-
-# ========= PATHS =========
-#MODEL_PATH = "model_stacking_pipeline.pkl"
-IRR_PATH   = "Energy_solar.csv"
-
-# ========= PAGE CONFIG =========
-st.set_page_config(
-    page_title="Tableau de bord de l’énergie solaire",
-    page_icon="☀️",
-    layout="wide"
-)
 
 # ========= THEME POLISH =========
 def inject_css():
