@@ -395,6 +395,7 @@ model = load_model(str(MODEL_PATH), MODEL_PATH.stat().st_mtime)
 
 
 # ========= HERO =========
+left, right = st.columns([1, 1], vertical_alignment="center")
 
 with right:
     with st.container(border=True):
