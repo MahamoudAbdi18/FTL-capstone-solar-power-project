@@ -427,7 +427,7 @@ with tab1:
     st.caption("Fournissez un horodatage unique OU Heure/Jour/Mois ainsi que les variables météo ci-dessous.")
     st.code(", ".join(BASE_COLS), language="text")
 
-    time_mode = st.radio("Mode de saisie du temps", ["Colonne `time` unique", "Séparer Heure / Jour / Mois"], horizontal=True, key="time_mode_manual")
+    # time_mode = st.radio("Mode de saisie du temps", ["Colonne `time` unique", "Séparer Heure / Jour / Mois"], horizontal=True, key="time_mode_manual")
 
     with st.container():
         with st.form("manual_input_form", clear_on_submit=False, border=False):
