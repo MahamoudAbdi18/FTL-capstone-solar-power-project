@@ -448,61 +448,59 @@ with tab1:
 
             dt = pd.to_datetime(f"{date_val} {time_val}")
 
-
-
-
             st.markdown('<div class="section-title">Météo</div>', unsafe_allow_html=True)
             c1, c2 = st.columns(2)
             with c1:
                 temperature_2m       = st.number_input("Temperature (°C)", value=25.0)
-                relative_humidity_2m = st.number_input(" Humidité Relative (%)", 0.0, 100.0, 50.0)
-                dew_point_2m         = st.number_input(" Point de Rosée (°C)", value=15.0)
+                relative_humidity_2m = st.number_input("Humidité Relative (%)", 0.0, 100.0, 50.0)
+                dew_point_2m         = st.number_input("Point de Rosée (°C)", value=15.0)
             with c2:
-                wind_speed_10m       = st.number_input("Vitesse du Vent (km/h)", min_value=0.0, value=10.0)
-                wind_direction_10m   = st.number_input("Direction du Vent (°)", 0.0, 360.0, 180.0)
-                cloud_cover          = st.number_input(" Couverture Nuagueuse (%)", 0.0, 100.0, 20.0)
+                wind_speed_10m     = st.number_input("Vitesse du Vent (km/h)", min_value=0.0, value=10.0)
+                wind_direction_10m = st.number_input("Direction du Vent (°)", 0.0, 360.0, 180.0)
+                cloud_cover        = st.number_input("Couverture Nuageuse (%)", 0.0, 100.0, 20.0)
 
             submitted = st.form_submit_button("Prédire")
+
+    # ✅ MUST be aligned with `with st.container():`
     if submitted:
-    row = {}
+        row = {}
 
-    # --- time ---
-    row[RAW_TIME] = dt
+        # --- time ---
+        row[RAW_TIME] = dt
 
-    # --- weather ---
-    row['temperature_2m (°C)']       = float(temperature_2m)
-    row['relative_humidity_2m (%)']  = float(relative_humidity_2m)
-    row['dew_point_2m (°C)']         = float(dew_point_2m)
-    row['wind_speed_10m (km/h)']     = float(wind_speed_10m)
-    row['wind_direction_10m (°)']    = float(wind_direction_10m)
-    row['cloud_cover (%)']           = float(cloud_cover)
+        # --- weather ---
+        row['temperature_2m (°C)']       = float(temperature_2m)
+        row['relative_humidity_2m (%)']  = float(relative_humidity_2m)
+        row['dew_point_2m (°C)']         = float(dew_point_2m)
+        row['wind_speed_10m (km/h)']     = float(wind_speed_10m)
+        row['wind_direction_10m (°)']    = float(wind_direction_10m)
+        row['cloud_cover (%)']           = float(cloud_cover)
 
-    # --- safety fill ---
-    for col in ALL_FEATURES_WITH_TIME:
-        row.setdefault(col, 0 if col in TIME_FEATURES else 0.0)
+        # --- safety fill ---
+        for col in ALL_FEATURES_WITH_TIME:
+            row.setdefault(col, 0 if col in TIME_FEATURES else 0.0)
 
-    X = pd.DataFrame([row], columns=ALL_FEATURES_WITH_TIME)
+        X = pd.DataFrame([row], columns=ALL_FEATURES_WITH_TIME)
 
-    try:
-        y = model.predict(X)
-        pred = float(y[0])
+        try:
+            y = model.predict(X)
+            pred = float(y[0])
 
-        st.success("Prédiction terminée")
-        st.metric("Prédiction (W/m²)", f"{pred:,.2f}")
+            st.success("Prédiction terminée")
+            st.metric("Prédiction (W/m²)", f"{pred:,.2f}")
 
-        out = X.copy()
-        out["prediction_W_m2"] = pred
-        st.download_button(
-            "⬇️ Télécharger CSV",
-            out.to_csv(index=False).encode("utf-8"),
-            "prediction_single.csv",
-            "text/csv"
-        )
+            out = X.copy()
+            out["prediction_W_m2"] = pred
+            st.download_button(
+                "⬇️ Télécharger CSV",
+                out.to_csv(index=False).encode("utf-8"),
+                "prediction_single.csv",
+                "text/csv"
+            )
 
-    except Exception as e:
-        st.error(f"Prediction error: {e}")
+        except Exception as e:
+            st.error(f"Prediction error: {e}")
 
-        
 
 # ---------- TAB 2: Batch ----------
 with tab2:
