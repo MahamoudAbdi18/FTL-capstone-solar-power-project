@@ -396,7 +396,8 @@ model = load_model(str(MODEL_PATH), MODEL_PATH.stat().st_mtime)
 
 # ========= HERO =========
 left, right = st.columns([1, 1], vertical_alignment="center")
-
+with left:
+    st.write("Prédictions à partir des données météo + variables temporelles, prise en charge des fichiers CSV en lot, et évaluation saisonnière du photovoltaïque PV basée sur les données d’irradiance.")
 with right:
     with st.container(border=True):
         c1, c2, c3 = st.columns(3)
