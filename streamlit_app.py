@@ -285,7 +285,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["🖊️ Manuel", "📂 CSV en lot", "🔆 Év
 
 # ---------- TAB 1: Manual ----------
 with tab1:
-    st.markdown("### Quick single prediction")
+    st.markdown("### Prédiction")
     st.caption("Fournissez un horodatage unique OU Heure/Jour/Mois ainsi que les variables météo ci-dessous.")
     st.code(", ".join(BASE_COLS), language="text")
 
