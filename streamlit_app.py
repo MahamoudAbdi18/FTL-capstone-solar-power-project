@@ -1,3 +1,43 @@
+
+def inject_css():
+    st.markdown("""
+    <style>
+      /* Page width & fonts */
+      .block-container { max-width: 1160px; padding-top: 1rem; padding-bottom: 4rem; }
+      h1, h2, h3 { letter-spacing: .1px; }
+      /* Section headers with subtle rule */
+      .section-title { 
+        font-weight: 700; font-size: 1.15rem; margin: 1.1rem 0 .4rem; 
+        padding-top: .4rem; border-top: 1px solid rgba(0,0,0,.06);
+      }
+      /* Card */
+      .card { background: var(--secondary-background-color);
+              border: 1px solid rgba(0,0,0,.06); border-radius: 14px; padding: 14px 16px; }
+      /* Primary button emphasis */
+      .stButton>button { border-radius: 10px; padding: .55rem 1rem; font-weight: 600; }
+      /* Metrics slightly bigger */
+      div[data-testid="stMetricValue"] { font-size: 1.4rem; }
+      /* Tabs spacing */
+      [data-baseweb="tab-list"] { gap: 4px; }
+      /* Subtle dividers */
+      hr { border: none; border-top: 1px solid rgba(0,0,0,.08); margin: 12px 0; }
+      /* Dataframe edges softer */
+      div[data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; }
+    </style>
+    """, unsafe_allow_html=True)
+
+
+import streamlit as st
+import os, sys, types, base64, mimetypes
+import joblib
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from datetime import datetime
+
+# ========= PATHS =========
+#MODEL_PATH = "model_stacking_pipeline.pkl"
+IRR_PATH   = "Energy_solar.csv"
 # ========= LANGUAGE SELECTION =========
 if "lang" not in st.session_state:
     st.session_state.lang = "fr"
@@ -49,46 +89,6 @@ T = {
 }
 def tr(key: str) -> str:
     return T.get(LANG, {}).get(key, key)
-
-def inject_css():
-    st.markdown("""
-    <style>
-      /* Page width & fonts */
-      .block-container { max-width: 1160px; padding-top: 1rem; padding-bottom: 4rem; }
-      h1, h2, h3 { letter-spacing: .1px; }
-      /* Section headers with subtle rule */
-      .section-title { 
-        font-weight: 700; font-size: 1.15rem; margin: 1.1rem 0 .4rem; 
-        padding-top: .4rem; border-top: 1px solid rgba(0,0,0,.06);
-      }
-      /* Card */
-      .card { background: var(--secondary-background-color);
-              border: 1px solid rgba(0,0,0,.06); border-radius: 14px; padding: 14px 16px; }
-      /* Primary button emphasis */
-      .stButton>button { border-radius: 10px; padding: .55rem 1rem; font-weight: 600; }
-      /* Metrics slightly bigger */
-      div[data-testid="stMetricValue"] { font-size: 1.4rem; }
-      /* Tabs spacing */
-      [data-baseweb="tab-list"] { gap: 4px; }
-      /* Subtle dividers */
-      hr { border: none; border-top: 1px solid rgba(0,0,0,.08); margin: 12px 0; }
-      /* Dataframe edges softer */
-      div[data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; }
-    </style>
-    """, unsafe_allow_html=True)
-
-
-import streamlit as st
-import os, sys, types, base64, mimetypes
-import joblib
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from datetime import datetime
-
-# ========= PATHS =========
-#MODEL_PATH = "model_stacking_pipeline.pkl"
-IRR_PATH   = "Energy_solar.csv"
 
 # ========= PAGE CONFIG =========
 st.set_page_config(
