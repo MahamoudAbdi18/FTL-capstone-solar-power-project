@@ -463,35 +463,46 @@ with tab1:
                 cloud_cover          = st.number_input(" Couverture Nuagueuse (%)", 0.0, 100.0, 20.0)
 
             submitted = st.form_submit_button("Prédire")
+    if submitted:
+    row = {}
 
-        # if submitted:
-        #     row = {}
-        #     if time_mode == "Colonne `time` unique":
-        #         row[RAW_TIME] = dt; row["Hour"]=row["Day"]=row["Month"]=0
-        #     else:
-        #         row["Hour"]=int(hour); row["Day"]=int(day); row["Month"]=int(month); row[RAW_TIME]=pd.NaT
+    # --- time ---
+    row[RAW_TIME] = dt
 
-        #     row['temperature_2m (°C)']       = float(temperature_2m)
-        #     row['relative_humidity_2m (%)']  = float(relative_humidity_2m)
-        #     row['dew_point_2m (°C)']         = float(dew_point_2m)
-        #     row['wind_speed_10m (km/h)']     = float(wind_speed_10m)
-        #     row['wind_direction_10m (°)']    = float(wind_direction_10m)
-        #     row['cloud_cover (%)']           = float(cloud_cover)
+    # --- weather ---
+    row['temperature_2m (°C)']       = float(temperature_2m)
+    row['relative_humidity_2m (%)']  = float(relative_humidity_2m)
+    row['dew_point_2m (°C)']         = float(dew_point_2m)
+    row['wind_speed_10m (km/h)']     = float(wind_speed_10m)
+    row['wind_direction_10m (°)']    = float(wind_direction_10m)
+    row['cloud_cover (%)']           = float(cloud_cover)
 
-        for col in ALL_FEATURES_WITH_TIME:
-            row.setdefault(col, 0 if col in TIME_FEATURES else 0.0)
+    # --- safety fill ---
+    for col in ALL_FEATURES_WITH_TIME:
+        row.setdefault(col, 0 if col in TIME_FEATURES else 0.0)
 
-        X = pd.DataFrame([row], columns=ALL_FEATURES_WITH_TIME)
-        try:
-            y = model.predict(X)
-            pred = float(y[0])
-            st.success("Prédiction terminée")
-            st.metric("Prédiction (W/m²)", f"{pred:,.2f}")
-            out = X.copy(); out["prediction_W_m2"] = pred
-            st.download_button("⬇️ Télécharger CSV", out.to_csv(index=False).encode("utf-8"),
-                                   "prediction_single.csv", "text/csv")
-        except Exception as e:
-            st.error(f"Prediction error: {e}")
+    X = pd.DataFrame([row], columns=ALL_FEATURES_WITH_TIME)
+
+    try:
+        y = model.predict(X)
+        pred = float(y[0])
+
+        st.success("Prédiction terminée")
+        st.metric("Prédiction (W/m²)", f"{pred:,.2f}")
+
+        out = X.copy()
+        out["prediction_W_m2"] = pred
+        st.download_button(
+            "⬇️ Télécharger CSV",
+            out.to_csv(index=False).encode("utf-8"),
+            "prediction_single.csv",
+            "text/csv"
+        )
+
+    except Exception as e:
+        st.error(f"Prediction error: {e}")
+
+        
 
 # ---------- TAB 2: Batch ----------
 with tab2:
