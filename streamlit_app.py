@@ -13,12 +13,31 @@ from datetime import datetime
 #MODEL_PATH = "model_stacking_pipeline.pkl"
 IRR_PATH   = "Energy_solar.csv"
 
-# ========= PAGE CONFIG =========
+st.image("photo/solar_logo.png", width=120)
+col1, col2 = st.columns([0.15, 0.85], vertical_alignment="center")
+
+with col1:
+    st.image("photo/solar_logo.png", width=90)
+
+with col2:
+    st.markdown(
+        "<h1 style='margin-bottom:0'>Tableau de bord de l’énergie solaire</h1>",
+        unsafe_allow_html=True
+    )
 st.set_page_config(
     page_title="Tableau de bord de l’énergie solaire",
-    page_icon="☀️",
+    page_icon="photo/solar_logo.png",
     layout="wide"
 )
+
+# # ========= PAGE CONFIG =========
+# st.set_page_config(
+#     page_title="Tableau de bord de l’énergie solaire",
+#     page_icon="☀️",
+#     layout="wide"
+# )
+
+
 
 def inject_css():
     st.markdown("""
