@@ -19,14 +19,25 @@ st.set_page_config(
     layout="wide"
 )
 
+st.markdown(
+    """
+    <style>
+    .block-container {
+        padding-top: 2rem !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 col1, col2 = st.columns([1, 6], vertical_alignment="center")
 
 with col1:
-    st.image("photo/solar_logo.png", width=140)
+    st.image("photo/solar_logo.png", width=160)
 
 with col2:
     st.markdown(
-        "<h1 style='margin-bottom:0'>Tableau de bord de l’énergie solaire</h1>",
+        "<h1 style='margin:0'>Tableau de bord de l’énergie solaire</h1>",
         unsafe_allow_html=True
     )
 
