@@ -432,20 +432,14 @@ with tab1:
     with st.container():
         with st.form("manual_input_form", clear_on_submit=False, border=False):
             st.markdown('<div class="section-title">Temps</div>', unsafe_allow_html=True)
-            if time_mode == "Colonne `time` unique":
-                dcol1, dcol2 = st.columns(2)
-                with dcol1:
-                    date_val = st.date_input("Date", value=datetime.now().date())
-                with dcol2:
-                    time_val = st.time_input("Heure", value=datetime.now().time().replace(minute=0, second=0, microsecond=0))
-                dt = pd.to_datetime(f"{date_val} {time_val}")
-                hour = day = month = None
-            else:
-                col_h, col_d, col_m = st.columns(3)
-                with col_h: hour  = st.number_input("Heure",  0, 23, 12, 1)
-                with col_d: day   = st.number_input("Jour",   1, 31, 15, 1)
-                with col_m: month = st.number_input("Mois", 1, 12, 6, 1)
-                dt = None
+            dcol1, dcol2 = st.columns(2)
+        with dcol1:
+            date_val = st.date_input("Date", value=datetime.now().date())
+        with dcol2:
+            time_val = st.time_input("Heure",value=datetime.now().time().replace(minute=0, second=0, microsecond=0))
+
+        dt = pd.to_datetime(f"{date_val} {time_val}")
+
 
             st.markdown('<div class="section-title">Météo</div>', unsafe_allow_html=True)
             c1, c2 = st.columns(2)
