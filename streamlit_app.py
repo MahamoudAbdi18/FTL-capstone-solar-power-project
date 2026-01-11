@@ -2,29 +2,157 @@
 def inject_css():
     st.markdown("""
     <style>
-      /* Page width & fonts */
-      .block-container { max-width: 1160px; padding-top: 1rem; padding-bottom: 4rem; }
-      h1, h2, h3 { letter-spacing: .1px; }
-      /* Section headers with subtle rule */
-      .section-title { 
-        font-weight: 700; font-size: 1.15rem; margin: 1.1rem 0 .4rem; 
-        padding-top: .4rem; border-top: 1px solid rgba(0,0,0,.06);
-      }
-      /* Card */
-      .card { background: var(--secondary-background-color);
-              border: 1px solid rgba(0,0,0,.06); border-radius: 14px; padding: 14px 16px; }
-      /* Primary button emphasis */
-      .stButton>button { border-radius: 10px; padding: .55rem 1rem; font-weight: 600; }
-      /* Metrics slightly bigger */
-      div[data-testid="stMetricValue"] { font-size: 1.4rem; }
-      /* Tabs spacing */
-      [data-baseweb="tab-list"] { gap: 4px; }
-      /* Subtle dividers */
-      hr { border: none; border-top: 1px solid rgba(0,0,0,.08); margin: 12px 0; }
-      /* Dataframe edges softer */
-      div[data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; }
+    /* ================= ROOT THEME ================= */
+    :root {
+        --accent: #F59E0B;           /* solar amber */
+        --accent-soft: #FDE68A;
+        --accent-dark: #B45309;
+        --bg-glass: rgba(255,255,255,0.65);
+        --border-soft: rgba(0,0,0,0.06);
+        --shadow-soft: 0 10px 30px rgba(0,0,0,0.08);
+        --shadow-hover: 0 16px 40px rgba(0,0,0,0.12);
+    }
+
+    /* ================= PAGE ================= */
+    .block-container {
+        max-width: 1180px;
+        padding-top: 1.2rem;
+        padding-bottom: 4rem;
+    }
+
+    h1, h2, h3, h4 {
+        letter-spacing: .2px;
+        font-weight: 700;
+    }
+
+    h1 {
+        background: linear-gradient(90deg, #F59E0B, #FBBF24);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* ================= SECTION TITLE ================= */
+    .section-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin: 1.4rem 0 .6rem;
+        padding-top: .6rem;
+        border-top: 1px solid var(--border-soft);
+        color: #374151;
+    }
+
+    /* ================= CARDS ================= */
+    .card {
+        background: var(--bg-glass);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-soft);
+        border-radius: 18px;
+        padding: 16px 18px;
+        box-shadow: var(--shadow-soft);
+        transition: all .25s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    /* ================= BUTTONS ================= */
+    .stButton > button {
+        border-radius: 12px;
+        padding: .6rem 1.2rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #F59E0B, #FBBF24);
+        color: black;
+        border: none;
+        box-shadow: 0 6px 16px rgba(245,158,11,.35);
+        transition: all .2s ease;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 24px rgba(245,158,11,.45);
+        background: linear-gradient(135deg, #FBBF24, #F59E0B);
+    }
+
+    /* ================= METRICS ================= */
+    div[data-testid="stMetric"] {
+        background: var(--bg-glass);
+        border-radius: 16px;
+        padding: 14px;
+        box-shadow: var(--shadow-soft);
+        border: 1px solid var(--border-soft);
+    }
+
+    div[data-testid="stMetricValue"] {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #92400E;
+    }
+
+    /* ================= TABS ================= */
+    [data-baseweb="tab-list"] {
+        gap: 6px;
+        padding-bottom: 6px;
+    }
+
+    [data-baseweb="tab"] {
+        border-radius: 12px;
+        padding: .45rem .9rem;
+        background: rgba(0,0,0,0.03);
+        transition: all .2s ease;
+        font-weight: 600;
+    }
+
+    [data-baseweb="tab"]:hover {
+        background: var(--accent-soft);
+    }
+
+    [aria-selected="true"] {
+        background: linear-gradient(135deg, #F59E0B, #FBBF24) !important;
+        color: black !important;
+        box-shadow: 0 6px 16px rgba(245,158,11,.35);
+    }
+
+    /* ================= DATAFRAMES ================= */
+    div[data-testid="stDataFrame"] {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--border-soft);
+        box-shadow: var(--shadow-soft);
+    }
+
+    /* ================= DIVIDERS ================= */
+    hr {
+        border: none;
+        border-top: 1px solid var(--border-soft);
+        margin: 1.2rem 0;
+    }
+
+    /* ================= SIDEBAR ================= */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #FFFBEB, #FEF3C7);
+        border-right: 1px solid var(--border-soft);
+    }
+
+    section[data-testid="stSidebar"] code {
+        border-radius: 12px;
+    }
+
+    /* ================= SCROLLBAR ================= */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #FBBF24;
+        border-radius: 6px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #F59E0B;
+    }
     </style>
     """, unsafe_allow_html=True)
+
 
 
 import streamlit as st
