@@ -112,7 +112,7 @@ T = {
         "upload": "Upload CSV",
         "team_title": "Meet the team",
         "footer": "Solar Dashboard • Built with Streamlit"
-    }
+    },
     # ---- TAB 1 ----
 "quick_pred": {
     "fr": "### Prédiction rapide",
