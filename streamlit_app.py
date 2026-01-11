@@ -19,7 +19,7 @@ st.set_page_config(
     layout="wide"
 )
 
-col1, col2 = st.columns([0.15, 1], vertical_alignment="center")
+col1, col2 = st.columns([0.50, 1], vertical_alignment="center")
 
 with col1:
     st.image("photo/solar_logo.png", width=180)
