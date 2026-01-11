@@ -13,7 +13,6 @@ from datetime import datetime
 #MODEL_PATH = "model_stacking_pipeline.pkl"
 IRR_PATH   = "Energy_solar.csv"
 
-st.image("photo/solar_logo.png", width=120)
 
 col1, col2 = st.columns([0.15, 0.85], vertical_alignment="center")
 
