@@ -177,22 +177,7 @@ def inject_css():
 
 
 # ========= THEME POLISH =========
-def inject_css():
-    st.markdown("""
-    <style>
-      .block-container { max-width: 1160px; padding-top: 1rem; padding-bottom: 4rem; }
-      h1, h2, h3 { letter-spacing: .1px; }
-      .section-title { font-weight: 700; font-size: 1.15rem; margin: 1.1rem 0 .4rem;
-                       padding-top: .4rem; border-top: 1px solid rgba(0,0,0,.06); }
-      .card { background: var(--secondary-background-color);
-              border: 1px solid rgba(0,0,0,.06); border-radius: 14px; padding: 14px 16px; }
-      .stButton>button { border-radius: 10px; padding: .55rem 1rem; font-weight: 600; }
-      div[data-testid="stMetricValue"] { font-size: 1.4rem; }
-      [data-baseweb="tab-list"] { gap: 4px; }
-      hr { border: none; border-top: 1px solid rgba(0,0,0,.08); margin: 12px 0; }
-      div[data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; }
-    </style>
-    """, unsafe_allow_html=True)
+
 
 inject_css()
 
