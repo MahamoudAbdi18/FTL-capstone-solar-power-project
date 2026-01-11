@@ -1,3 +1,54 @@
+# ========= LANGUAGE SELECTION =========
+if "lang" not in st.session_state:
+    st.session_state.lang = "fr"
+
+with st.sidebar:
+    st.markdown("### 🌐 Language / Langue")
+    st.session_state.lang = st.radio(
+        "",
+        options=["fr", "en"],
+        format_func=lambda x: "🇫🇷 Français" if x == "fr" else "🇬🇧 English",
+        horizontal=True
+    )
+
+LANG = st.session_state.lang
+# ========= TRANSLATIONS =========
+T = {
+    "fr": {
+        "title": "☀️ Tableau de bord de l’énergie solaire",
+        "subtitle": "Prédictions à partir des données météo et temporelles.",
+        "model_file": "Fichier du modèle",
+        "loaded": "Chargé",
+        "variables": "Variables",
+        "time_inputs": "Entrées temporelles",
+        "manual": "🖊️ Manuel",
+        "batch": "📂 CSV en lot",
+        "panel": "🔆 Évaluation des panneaux",
+        "team": "👥 Équipe",
+        "predict": "Prédire",
+        "download": "⬇️ Télécharger CSV",
+        "success_pred": "Prédiction terminée",
+        "prediction": "Prédiction (W/m²)",
+    },
+    "en": {
+        "title": "☀️ Solar Energy Dashboard",
+        "subtitle": "Predictions using weather and time features.",
+        "model_file": "Model file",
+        "loaded": "Loaded",
+        "variables": "Variables",
+        "time_inputs": "Time inputs",
+        "manual": "🖊️ Manual",
+        "batch": "📂 Batch CSV",
+        "panel": "🔆 Panel Evaluation",
+        "team": "👥 Team",
+        "predict": "Predict",
+        "download": "⬇️ Download CSV",
+        "success_pred": "Prediction completed",
+        "prediction": "Prediction (W/m²)",
+    }
+}
+def tr(key: str) -> str:
+    return T.get(LANG, {}).get(key, key)
 
 def inject_css():
     st.markdown("""
@@ -41,7 +92,7 @@ IRR_PATH   = "Energy_solar.csv"
 
 # ========= PAGE CONFIG =========
 st.set_page_config(
-    page_title="Tableau de bord de l’énergie solaire",
+    page_title=tr("title"),
     page_icon="☀️",
     layout="wide"
 )
@@ -269,19 +320,26 @@ model = load_model(str(MODEL_PATH), MODEL_PATH.stat().st_mtime)
 # ========= HERO =========
 left, right = st.columns([1, 1], vertical_alignment="center")
 with left:
-    st.title("☀️ Tableau de bord de l’énergie solaire")
-    st.write("Prédictions à partir des données météo + variables temporelles, prise en charge des fichiers CSV en lot, et évaluation saisonnière du photovoltaïque PV basée sur les données d’irradiance.")
+    st.title(tr("title"))
+    st.write(tr("subtitle"))
+
 with right:
     with st.container(border=True):
         c1, c2, c3 = st.columns(3)
-        c1.metric("Fichier du modèle", "Chargé")
-        c2.metric("Variables", f"{len(BASE_COLS)} weather")
-        c3.metric("Entrées temporelles", "Heure/Jour/Mois")
+        c1.metric(tr("model_file"), tr("loaded"))
+        c2.metric(tr("variables"), f"{len(BASE_COLS)} weather")
+        c3.metric(tr("time_inputs"), "Hour / Day / Month")
+
 
 st.divider()
 
 # ========= TABS =========
-tab1, tab2, tab3, tab4 = st.tabs(["🖊️ Manuel", "📂 CSV en lot", "🔆 Évaluation des panneaux", "👥 Equipe"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    tr("🖊️ manual"),
+    tr("📂 batch"),
+    tr("🔆 panel"),
+    tr("👥 team")
+])
 
 # ---------- TAB 1: Manual ----------
 with tab1:
@@ -320,7 +378,8 @@ with tab1:
                 wind_direction_10m   = st.number_input("Direction du Vent (°)", 0.0, 360.0, 180.0)
                 cloud_cover          = st.number_input(" Couverture Nuagueuse (%)", 0.0, 100.0, 20.0)
 
-            submitted = st.form_submit_button("Prédire")
+            submitted = st.form_submit_button(tr("predict"))
+
 
         if submitted:
             row = {}
@@ -343,10 +402,10 @@ with tab1:
             try:
                 y = model.predict(X)
                 pred = float(y[0])
-                st.success("Prédiction terminée")
-                st.metric("Prédiction (W/m²)", f"{pred:,.2f}")
+                st.success(tr("success_pred"))
+                st.metric(tr("prediction"), f"{pred:,.2f}")
                 out = X.copy(); out["prediction_W_m2"] = pred
-                st.download_button("⬇️ Télécharger CSV", out.to_csv(index=False).encode("utf-8"),
+                st.download_button(tr("download"), out.to_csv(index=False).encode("utf-8"),
                                    "prediction_single.csv", "text/csv")
             except Exception as e:
                 st.error(f"Prediction error: {e}")
