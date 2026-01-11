@@ -422,23 +422,33 @@ st.divider()
 tab1, tab2, tab3, tab4 = st.tabs(["🖊️ Manuel", "📂 CSV en lot", "🔆 Évaluation des panneaux", "👥 Equipe"])
 
 # ---------- TAB 1: Manual ----------
+# ---------- TAB 1: Manual ----------
 with tab1:
     st.markdown("### Prédiction")
-    st.caption("Fournissez un horodatage unique OU Heure/Jour/Mois ainsi que les variables météo ci-dessous.")
+    st.caption("Fournissez un horodatage unique ainsi que les variables météo ci-dessous.")
     st.code(", ".join(BASE_COLS), language="text")
-
-    # time_mode = st.radio("Mode de saisie du temps", ["Colonne `time` unique", "Séparer Heure / Jour / Mois"], horizontal=True, key="time_mode_manual")
 
     with st.container():
         with st.form("manual_input_form", clear_on_submit=False, border=False):
             st.markdown('<div class="section-title">Temps</div>', unsafe_allow_html=True)
-            dcol1, dcol2 = st.columns(2)
-        with dcol1:
-            date_val = st.date_input("Date", value=datetime.now().date())
-        with dcol2:
-            time_val = st.time_input("Heure",value=datetime.now().time().replace(minute=0, second=0, microsecond=0))
 
-        dt = pd.to_datetime(f"{date_val} {time_val}")
+            dcol1, dcol2 = st.columns(2)
+            with dcol1:
+                date_val = st.date_input(
+                    "Date",
+                    value=datetime.now().date()
+                )
+            with dcol2:
+                time_val = st.time_input(
+                    "Heure",
+                    value=datetime.now().time().replace(
+                        minute=0, second=0, microsecond=0
+                    )
+                )
+
+            dt = pd.to_datetime(f"{date_val} {time_val}")
+
+
 
 
             st.markdown('<div class="section-title">Météo</div>', unsafe_allow_html=True)
