@@ -38,163 +38,10 @@ from datetime import datetime
 # ========= PATHS =========
 #MODEL_PATH = "model_stacking_pipeline.pkl"
 IRR_PATH   = "Energy_solar.csv"
-# ========= LANGUAGE SELECTION =========
-if "lang" not in st.session_state:
-    st.session_state.lang = "fr"
-
-with st.sidebar:
-    st.markdown("### 🌐 Language / Langue")
-    st.session_state.lang = st.radio(
-        "",
-        options=["fr", "en"],
-        format_func=lambda x: "🇫🇷 Français" if x == "fr" else "🇬🇧 English",
-        horizontal=True
-    )
-
-LANG = st.session_state.lang
-T = {
-    "fr": {
-        "title": "☀️ Tableau de bord de l’énergie solaire",
-        "subtitle": "Prédictions basées sur les données météo et temporelles.",
-        "manual": "🖊️ Manuel",
-        "batch": "📂 CSV en lot",
-        "panel": "🔆 Évaluation des panneaux",
-        "team": "👥 Équipe",
-        "predict": "Prédire",
-        "download": "⬇️ Télécharger CSV",
-        "success": "Prédiction terminée",
-        "prediction": "Prédiction (W/m²)",
-        "model_file": "Fichier du modèle",
-        "loaded": "Chargé",
-        "variables": "Variables météo",
-        "time_inputs": "Entrées temporelles",
-        "time_mode": "Mode de saisie du temps",
-        "single_time": "Colonne `time` unique",
-        "split_time": "Séparer Heure / Jour / Mois",
-        "weather": "Météo",
-        "batch_title": "Prédictions en lot depuis un CSV",
-        "choose_csv": "Choisir un fichier CSV",
-        "processing": "Calcul en cours…",
-        "rows_pred": "Lignes prédites",
-        "panel_title": "Performance photovoltaïque saisonnière et annuelle",
-        "source": "Source de données",
-        "internal": "Irradiance interne",
-        "upload": "Téléverser un CSV",
-        "team_title": "Rencontrez l’équipe",
-        "footer": "Tableau de bord solaire • Développé avec Streamlit"
-    },
-    "en": {
-        "title": "☀️ Solar Energy Dashboard",
-        "subtitle": "Predictions based on weather and temporal data.",
-        "manual": "🖊️ Manual",
-        "batch": "📂 Batch CSV",
-        "panel": "🔆 Panel Evaluation",
-        "team": "👥 Team",
-        "predict": "Predict",
-        "download": "⬇️ Download CSV",
-        "success": "Prediction completed",
-        "prediction": "Prediction (W/m²)",
-        "model_file": "Model file",
-        "loaded": "Loaded",
-        "variables": "Weather variables",
-        "time_inputs": "Time inputs",
-        "time_mode": "Time input mode",
-        "single_time": "Single `time` column",
-        "split_time": "Split Hour / Day / Month",
-        "weather": "Weather",
-        "batch_title": "Batch predictions from CSV",
-        "choose_csv": "Choose a CSV file",
-        "processing": "Processing…",
-        "rows_pred": "Predicted rows",
-        "panel_title": "Seasonal and annual PV performance",
-        "source": "Data source",
-        "internal": "Internal irradiance",
-        "upload": "Upload CSV",
-        "team_title": "Meet the team",
-        "footer": "Solar Dashboard • Built with Streamlit"
-    },
-    # ---- TAB 1 ----
-"quick_pred": {
-    "fr": "### Prédiction rapide",
-    "en": "### Quick single prediction"
-},
-"manual_help": {
-    "fr": "Fournissez un horodatage unique OU Heure/Jour/Mois ainsi que les variables météo ci-dessous.",
-    "en": "Provide a single timestamp OR Hour/Day/Month along with the weather variables below."
-},
-"time_mode": {
-    "fr": "Mode de saisie du temps",
-    "en": "Time input mode"
-},
-"time_single": {
-    "fr": "Colonne `time` unique",
-    "en": "Single `time` column"
-},
-"time_split": {
-    "fr": "Séparer Heure / Jour / Mois",
-    "en": "Split Hour / Day / Month"
-},
-"time_section": {
-    "fr": "Temps",
-    "en": "Time"
-},
-"weather_section": {
-    "fr": "Météo",
-    "en": "Weather"
-},
-"date": {
-    "fr": "Date",
-    "en": "Date"
-},
-"hour": {
-    "fr": "Heure",
-    "en": "Hour"
-},
-"day": {
-    "fr": "Jour",
-    "en": "Day"
-},
-"month": {
-    "fr": "Mois",
-    "en": "Month"
-},
-"temperature": {
-    "fr": "Température (°C)",
-    "en": "Temperature (°C)"
-},
-"humidity": {
-    "fr": "Humidité relative (%)",
-    "en": "Relative humidity (%)"
-},
-"dew_point": {
-    "fr": "Point de rosée (°C)",
-    "en": "Dew point (°C)"
-},
-"wind_speed": {
-    "fr": "Vitesse du vent (km/h)",
-    "en": "Wind speed (km/h)"
-},
-"wind_dir": {
-    "fr": "Direction du vent (°)",
-    "en": "Wind direction (°)"
-},
-"cloud": {
-    "fr": "Couverture nuageuse (%)",
-    "en": "Cloud cover (%)"
-},
-
-}
-
-def tr(key):
-    return T[key][LANG]
-
-
-def tr(key: str) -> str:
-    return T.get(LANG, {}).get(key, key)
 
 # ========= PAGE CONFIG =========
 st.set_page_config(
-    page_title=tr("title"),
+    page_title="Tableau de bord de l’énergie solaire",
     page_icon="☀️",
     layout="wide"
 )
@@ -420,111 +267,87 @@ model = load_model(str(MODEL_PATH), MODEL_PATH.stat().st_mtime)
 
 
 # ========= HERO =========
-left, right = st.columns([1,1])
+left, right = st.columns([1, 1], vertical_alignment="center")
 with left:
-    st.title(tr("title"))
-    st.write(tr("subtitle"))
-
+    st.title("☀️ Tableau de bord de l’énergie solaire")
+    st.write("Prédictions à partir des données météo + variables temporelles, prise en charge des fichiers CSV en lot, et évaluation saisonnière du photovoltaïque PV basée sur les données d’irradiance.")
 with right:
-    c1, c2, c3 = st.columns(3)
-    c1.metric(tr("model_file"), tr("loaded"))
-    c2.metric(tr("variables"), "6")
-    c3.metric(tr("time_inputs"), "Hour / Day / Month")
-
-
+    with st.container(border=True):
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Fichier du modèle", "Chargé")
+        c2.metric("Variables", f"{len(BASE_COLS)} weather")
+        c3.metric("Entrées temporelles", "Heure/Jour/Mois")
 
 st.divider()
 
 # ========= TABS =========
-tab1, tab2, tab3, tab4 = st.tabs([
-    tr("🖊️ manual"),
-    tr("📂 batch"),
-    tr("🔆 panel"),
-    tr("👥 team")
-])
+tab1, tab2, tab3, tab4 = st.tabs(["🖊️ Manuel", "📂 CSV en lot", "🔆 Évaluation des panneaux", "👥 Equipe"])
 
-# ---------- TAB 1: Manual ----------
 # ---------- TAB 1: Manual ----------
 with tab1:
-    st.markdown(tr("quick_pred"))
-    st.caption(tr("manual_help"))
+    st.markdown("### Quick single prediction")
+    st.caption("Fournissez un horodatage unique OU Heure/Jour/Mois ainsi que les variables météo ci-dessous.")
     st.code(", ".join(BASE_COLS), language="text")
 
-    time_mode = st.radio(
-        tr("time_mode"),
-        [tr("time_single"), tr("time_split")],
-        horizontal=True,
-        key="time_mode_manual"
-    )
+    time_mode = st.radio("Mode de saisie du temps", ["Colonne `time` unique", "Séparer Heure / Jour / Mois"], horizontal=True, key="time_mode_manual")
 
     with st.container():
         with st.form("manual_input_form", clear_on_submit=False, border=False):
-            st.markdown(f'<div class="section-title">{tr("time_section")}</div>', unsafe_allow_html=True)
-
-            if time_mode == tr("time_single"):
+            st.markdown('<div class="section-title">Temps</div>', unsafe_allow_html=True)
+            if time_mode == "Colonne `time` unique":
                 dcol1, dcol2 = st.columns(2)
                 with dcol1:
-                    date_val = st.date_input(tr("date"), value=datetime.now().date())
+                    date_val = st.date_input("Date", value=datetime.now().date())
                 with dcol2:
-                    time_val = st.time_input(tr("hour"), value=datetime.now().time().replace(minute=0, second=0, microsecond=0))
+                    time_val = st.time_input("Heure", value=datetime.now().time().replace(minute=0, second=0, microsecond=0))
                 dt = pd.to_datetime(f"{date_val} {time_val}")
                 hour = day = month = None
             else:
                 col_h, col_d, col_m = st.columns(3)
-                with col_h: hour  = st.number_input(tr("hour"),  0, 23, 12, 1)
-                with col_d: day   = st.number_input(tr("day"),   1, 31, 15, 1)
-                with col_m: month = st.number_input(tr("month"), 1, 12, 6, 1)
+                with col_h: hour  = st.number_input("Heure",  0, 23, 12, 1)
+                with col_d: day   = st.number_input("Jour",   1, 31, 15, 1)
+                with col_m: month = st.number_input("Mois", 1, 12, 6, 1)
                 dt = None
 
-            st.markdown(f'<div class="section-title">{tr("weather_section")}</div>', unsafe_allow_html=True)
-
+            st.markdown('<div class="section-title">Météo</div>', unsafe_allow_html=True)
             c1, c2 = st.columns(2)
             with c1:
-                temperature_2m       = st.number_input(tr("temperature"), value=25.0)
-                relative_humidity_2m = st.number_input(tr("humidity"), 0.0, 100.0, 50.0)
-                dew_point_2m         = st.number_input(tr("dew_point"), value=15.0)
+                temperature_2m       = st.number_input("Temperature (°C)", value=25.0)
+                relative_humidity_2m = st.number_input(" Humidité Relative (%)", 0.0, 100.0, 50.0)
+                dew_point_2m         = st.number_input(" Point de Rosée (°C)", value=15.0)
             with c2:
-                wind_speed_10m       = st.number_input(tr("wind_speed"), min_value=0.0, value=10.0)
-                wind_direction_10m   = st.number_input(tr("wind_dir"), 0.0, 360.0, 180.0)
-                cloud_cover          = st.number_input(tr("cloud"), 0.0, 100.0, 20.0)
+                wind_speed_10m       = st.number_input("Vitesse du Vent (km/h)", min_value=0.0, value=10.0)
+                wind_direction_10m   = st.number_input("Direction du Vent (°)", 0.0, 360.0, 180.0)
+                cloud_cover          = st.number_input(" Couverture Nuagueuse (%)", 0.0, 100.0, 20.0)
 
-            submitted = st.form_submit_button(tr("predict"))
+            submitted = st.form_submit_button("Prédire")
 
         if submitted:
             row = {}
-            if time_mode == tr("time_single"):
-                row[RAW_TIME] = dt
-                row["Hour"] = row["Day"] = row["Month"] = 0
+            if time_mode == "Colonne `time` unique":
+                row[RAW_TIME] = dt; row["Hour"]=row["Day"]=row["Month"]=0
             else:
-                row["Hour"] = int(hour)
-                row["Day"] = int(day)
-                row["Month"] = int(month)
-                row[RAW_TIME] = pd.NaT
+                row["Hour"]=int(hour); row["Day"]=int(day); row["Month"]=int(month); row[RAW_TIME]=pd.NaT
 
-            row['temperature_2m (°C)']      = float(temperature_2m)
-            row['relative_humidity_2m (%)'] = float(relative_humidity_2m)
-            row['dew_point_2m (°C)']        = float(dew_point_2m)
-            row['wind_speed_10m (km/h)']    = float(wind_speed_10m)
-            row['wind_direction_10m (°)']   = float(wind_direction_10m)
-            row['cloud_cover (%)']          = float(cloud_cover)
+            row['temperature_2m (°C)']       = float(temperature_2m)
+            row['relative_humidity_2m (%)']  = float(relative_humidity_2m)
+            row['dew_point_2m (°C)']         = float(dew_point_2m)
+            row['wind_speed_10m (km/h)']     = float(wind_speed_10m)
+            row['wind_direction_10m (°)']    = float(wind_direction_10m)
+            row['cloud_cover (%)']           = float(cloud_cover)
 
             for col in ALL_FEATURES_WITH_TIME:
                 row.setdefault(col, 0 if col in TIME_FEATURES else 0.0)
 
             X = pd.DataFrame([row], columns=ALL_FEATURES_WITH_TIME)
-
             try:
-                pred = float(model.predict(X)[0])
-                st.success(tr("success_pred"))
-                st.metric(tr("prediction"), f"{pred:,.2f}")
-                out = X.copy()
-                out["prediction_W_m2"] = pred
-                st.download_button(
-                    tr("download"),
-                    out.to_csv(index=False).encode("utf-8"),
-                    "prediction_single.csv",
-                    "text/csv"
-                )
+                y = model.predict(X)
+                pred = float(y[0])
+                st.success("Prédiction terminée")
+                st.metric("Prédiction (W/m²)", f"{pred:,.2f}")
+                out = X.copy(); out["prediction_W_m2"] = pred
+                st.download_button("⬇️ Télécharger CSV", out.to_csv(index=False).encode("utf-8"),
+                                   "prediction_single.csv", "text/csv")
             except Exception as e:
                 st.error(f"Prediction error: {e}")
 
