@@ -31,12 +31,7 @@ with col2:
     )
 
 
-# # ========= PAGE CONFIG =========
-# st.set_page_config(
-#     page_title="Tableau de bord de l’énergie solaire",
-#     page_icon="☀️",
-#     layout="wide"
-# )
+
 
 def inject_css():
     st.markdown("""
