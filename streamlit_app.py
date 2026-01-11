@@ -22,7 +22,7 @@ st.set_page_config(
 col1, col2 = st.columns([0.15, 0.85], vertical_alignment="center")
 
 with col1:
-    st.image("photo/solar_logo.png", width=120)
+    st.image("photo/solar_logo.png", width=150)
 
 with col2:
     st.markdown(
