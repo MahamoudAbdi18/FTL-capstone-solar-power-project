@@ -33,7 +33,7 @@ st.markdown(
 col1, col2 = st.columns([1, 6], vertical_alignment="center")
 
 with col1:
-    st.image("photo/solar_logo.png", width=160)
+    #st.image("photo/solar_logo.png", width=160)
 
 with col2:
     st.markdown(
