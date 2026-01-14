@@ -14,8 +14,8 @@ from datetime import datetime
 IRR_PATH   = "Energy_solar.csv"
 
 st.set_page_config(
-    page_title="Tableau de bord de l’énergie solaire",
-    page_icon="photo/solar_logo.png",
+    page_title=" ☀️ Tableau de bord de l’énergie solaire",
+    #page_icon="photo/solar_logo.png",
     layout="wide"
 )
 
