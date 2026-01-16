@@ -843,55 +843,59 @@ with tab4:
     st.caption("Cliquez sur une carte pour ouvrir le profil LinkedIn.")
 
     TEAM = [
-        {"name": "Mahmoud Abdi",      "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/", "avatar": "photo/moud.jpg"},
-        {"name": "Moustapha Ali",     "linkedin": "https://www.linkedin.com/in/moustaphalifarah/",        "avatar": "photo/mous.jpg"},
+        {"name": "Mahmoud Abdi", "linkedin": "https://www.linkedin.com/in/mahamoud-abdi-abdillahi/", "avatar": "photo/moud.jpg"},
+        {"name": "Moustapha Ali", "linkedin": "https://www.linkedin.com/in/moustaphalifarah/", "avatar": "photo/mous.jpg"},
         {"name": "Aboubaker Mohamed", "linkedin": "https://www.linkedin.com/in/aboubaker-mohamed-abdi-010114273/", "avatar": "photo/abou.jpg"},
-        {"name": "Mohamed Abdirazak Achour", "linkedin": "https://www.linkedin.com/in/mohamed-abdourazak-achour-84b591230?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app/", "avatar": "photo/achour.png"},
-
+        {"name": "Mohamed Abdirazak Achour", "linkedin": "https://www.linkedin.com/in/mohamed-abdourazak-achour-84b591230/", "avatar": "photo/achour.png"},
     ]
 
     def _as_data_uri(path: str) -> str | None:
-        if not path or not os.path.exists(path): return None
+        if not path or not os.path.exists(path):
+            return None
         mime = mimetypes.guess_type(path)[0] or "image/jpeg"
-        with open(path, "rb") as f: b64 = base64.b64encode(f.read()).decode("ascii")
+        with open(path, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode("ascii")
         return f"data:{mime};base64,{b64}"
 
     def _resolve_img(src: str | None) -> str:
-        if not src: return "https://static.streamlit.io/examples/dice.jpg"
+        if not src:
+            return "https://static.streamlit.io/examples/dice.jpg"
         s = src.strip()
-        if s.startswith(("data:image/", "http://", "https://")): return s
+        if s.startswith(("data:image/", "http://", "https://")):
+            return s
         return _as_data_uri(s) or "https://static.streamlit.io/examples/dice.jpg"
 
-    _linkedin_svg = """
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-      <rect width="448" height="448" rx="48" ry="48" fill="#0A66C2"/>
-      <path fill="#fff" d="M100.3 448H7V148.9h93.3V448zM53.7 108.1C24 108.1 0 84 0 54.3S24 0.6 53.7 0.6s53.7 24.1 53.7 53.7-24.1 53.8-53.7 53.8zM447.9 448h-93.1V302.4c0-34.7-0.7-79.3-48.3-79.3-48.3 0-55.7 37.7-55.7 76.6V448h-93.1V148.9H248v40.8h1.3c13.9-26.4 47.9-54.3 98.6-54.3 105.4 0 124.9 69.4 124.9 159.6V448z"/>
-    </svg>
-    """.strip()
-    _linkedin_data_uri = "data:image/svg+xml;base64," + base64.b64encode(_linkedin_svg.encode("utf-8")).decode("ascii")
-
-    
     def member_card(name: str, avatar: str | None, linkedin: str | None):
-    img = _resolve_img(avatar)
-    ln  = (linkedin or "").strip()
+        img = _resolve_img(avatar)
+        ln = (linkedin or "").strip()
 
-    wrapper_start = f'<a href="{ln}" target="_blank" style="text-decoration:none;">' if ln else ""
-    wrapper_end   = "</a>" if ln else ""
+        wrapper_start = f'<a href="{ln}" target="_blank" style="text-decoration:none;">' if ln else ""
+        wrapper_end = "</a>" if ln else ""
 
-    html = f"""
-    {wrapper_start}
-    <div class="card" style="text-align:center; cursor:{'pointer' if ln else 'default'};">
-      <img src="{img}" alt="{name}" style="
-        width:100%; max-width:240px; aspect-ratio:4/5;
-        object-fit:cover; object-position:center top;
-        border-radius:14px;
-        box-shadow:0 4px 16px rgba(0,0,0,.08);" />
-      <div style="margin-top:10px; font-weight:700; color:#1f2937;">
-        {name}
-      </div>
-      {f'<img src="{_linkedin_data_uri}" style="width:30px;height:30px;margin-top:8px;" />' if ln else ""}
-    </div>
-    {wrapper_end}
-    """
+        html = f"""
+        {wrapper_start}
+        <div class="card" style="text-align:center; cursor:{'pointer' if ln else 'default'};">
+            <img src="{img}" alt="{name}" style="
+                width:100%; max-width:240px; aspect-ratio:4/5;
+                object-fit:cover; object-position:center top;
+                border-radius:14px;
+                box-shadow:0 4px 16px rgba(0,0,0,.08);" />
+            <div style="margin-top:10px; font-weight:700; color:#1f2937;">
+                {name}
+            </div>
+        </div>
+        {wrapper_end}
+        """
+        st.markdown(html, unsafe_allow_html=True)
 
-    st.markdown(html, unsafe_allow_html=True)
+    # === DISPLAY TEAM ===
+    per_row = 4
+    for i in range(0, len(TEAM), per_row):
+        cols = st.columns(per_row)
+        for col, member in zip(cols, TEAM[i:i+per_row]):
+            with col:
+                member_card(
+                    member["name"],
+                    member.get("avatar"),
+                    member.get("linkedin")
+                )
